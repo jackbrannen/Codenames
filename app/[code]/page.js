@@ -5,7 +5,7 @@ import { useRouter } from "next/navigation"
 import { supabase } from "../../lib/supabase"
 import { pick25Words } from "../../lib/words"
 
-const BG = "#1C1305"
+const BG = "#C0B298"
 const TAN = "#C4924A"
 const RED_COLOR = "#CC2222"
 const BLUE_COLOR = "#1E50B5"
@@ -29,9 +29,11 @@ function saveProfile(profile) {
   document.cookie = `jackgames_profile=${encodeURIComponent(json)}; domain=.jackbrannen.com; max-age=31536000; path=/; SameSite=Lax`
 }
 
+const TEXT = "#1A1008"
+
 const inputStyle = {
-  background: "rgba(255,255,255,0.12)",
-  color: "white",
+  background: "rgba(0,0,0,0.1)",
+  color: TEXT,
   fontSize: 20,
   padding: "16px 18px",
   width: "100%",
@@ -42,11 +44,11 @@ const inputStyle = {
 }
 
 const selectStyle = {
-  background: "rgba(0,0,0,0.35)",
-  color: "white",
+  background: "rgba(0,0,0,0.12)",
+  color: TEXT,
   fontSize: 16,
   padding: "8px 12px",
-  border: "1px solid rgba(255,255,255,0.2)",
+  border: "1px solid rgba(0,0,0,0.2)",
 }
 
 function CogIcon() {
@@ -252,7 +254,7 @@ export default function Lobby({ params }) {
   if (gameExists === null) {
     return (
       <div style={{ minHeight: "100dvh", background: BG, display: "flex", alignItems: "center", justifyContent: "center" }}>
-        <p style={{ color: "rgba(255,255,255,0.4)", fontSize: 18, fontWeight: 700 }}>Loading…</p>
+        <p style={{ color: "rgba(0,0,0,0.4)", fontSize: 18, fontWeight: 700 }}>Loading…</p>
       </div>
     )
   }
@@ -260,13 +262,13 @@ export default function Lobby({ params }) {
   if (!gameExists) {
     return (
       <div style={{ minHeight: "100dvh", background: BG, display: "flex", alignItems: "center", justifyContent: "center", padding: 24 }}>
-        <p style={{ color: "white", fontSize: 24, fontWeight: 900, textTransform: "uppercase" }}>Game not found.</p>
+        <p style={{ color: TEXT, fontSize: 24, fontWeight: 900, textTransform: "uppercase" }}>Game not found.</p>
       </div>
     )
   }
 
   return (
-    <div style={{ minHeight: "100dvh", background: BG, color: "white", paddingBottom: "max(48px, calc(48px + env(safe-area-inset-bottom, 0px)))" }}>
+    <div style={{ minHeight: "100dvh", background: BG, color: TEXT, paddingBottom: "max(48px, calc(48px + env(safe-area-inset-bottom, 0px)))" }}>
 
       {/* Header */}
       <div style={{ padding: "28px 24px 24px", background: "rgba(0,0,0,0.3)", display: "flex", justifyContent: "space-between", alignItems: "flex-start", gap: 16 }}>
@@ -282,7 +284,7 @@ export default function Lobby({ params }) {
           {!!me && (
             <button
               onClick={() => { setDraftFirstTurn(firstTurnTeam); setShowSettings(s => !s) }}
-              style={{ background: "rgba(255,255,255,0.12)", color: "white", padding: "8px 12px", display: "flex", alignItems: "center", justifyContent: "center" }}
+              style={{ background: "rgba(0,0,0,0.1)", color: TEXT, padding: "8px 12px", display: "flex", alignItems: "center", justifyContent: "center" }}
             >
               <CogIcon />
             </button>
@@ -293,7 +295,7 @@ export default function Lobby({ params }) {
               if (navigator.share) await navigator.share({ title: `Join Codenames — ${code}`, url })
               else { await navigator.clipboard.writeText(url); alert("Link copied!") }
             }}
-            style={{ background: "rgba(255,255,255,0.12)", color: "white", fontSize: 13, fontWeight: 800, padding: "10px 16px" }}
+            style={{ background: "rgba(0,0,0,0.1)", color: TEXT, fontSize: 13, fontWeight: 800, padding: "10px 16px" }}
           >
             Invite
           </button>
@@ -302,12 +304,12 @@ export default function Lobby({ params }) {
 
       {/* Settings panel */}
       {showSettings && (
-        <div style={{ padding: "20px 24px", background: "rgba(0,0,0,0.35)", borderBottom: "1px solid rgba(255,255,255,0.08)" }}>
+        <div style={{ padding: "20px 24px", background: "rgba(0,0,0,0.35)", borderBottom: "1px solid rgba(0,0,0,0.08)" }}>
           <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: 16 }}>
             <span style={{ fontSize: 16, fontWeight: 800, textTransform: "uppercase", letterSpacing: "0.08em" }}>Settings</span>
           </div>
           <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", padding: "10px 0" }}>
-            <span style={{ fontSize: 16, fontWeight: 600, color: "rgba(255,255,255,0.85)" }}>First Turn</span>
+            <span style={{ fontSize: 16, fontWeight: 600, color: "rgba(0,0,0,0.75)" }}>First Turn</span>
             <select
               value={draftFirstTurn}
               onChange={e => setDraftFirstTurn(e.target.value)}
@@ -326,7 +328,7 @@ export default function Lobby({ params }) {
             </button>
             <button
               onClick={() => setShowSettings(false)}
-              style={{ background: "rgba(255,255,255,0.12)", color: "white", fontSize: 16, fontWeight: 800, padding: "12px 20px" }}
+              style={{ background: "rgba(0,0,0,0.1)", color: TEXT, fontSize: 16, fontWeight: 800, padding: "12px 20px" }}
             >
               Cancel
             </button>
@@ -351,7 +353,7 @@ export default function Lobby({ params }) {
 
       {/* Teams */}
       <div style={{ padding: "28px 24px 0" }}>
-        <div style={{ fontSize: 11, fontWeight: 800, textTransform: "uppercase", letterSpacing: "0.15em", color: "rgba(255,255,255,0.4)", marginBottom: 14 }}>
+        <div style={{ fontSize: 11, fontWeight: 800, textTransform: "uppercase", letterSpacing: "0.15em", color: "rgba(0,0,0,0.4)", marginBottom: 14 }}>
           Teams
         </div>
         <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 10 }}>
@@ -379,14 +381,14 @@ export default function Lobby({ params }) {
               )}
 
               {teamPlayers.map(p => (
-                <div key={p.id} style={{ display: "flex", alignItems: "center", gap: 8, padding: "7px 0", borderBottom: "1px solid rgba(255,255,255,0.08)" }}>
+                <div key={p.id} style={{ display: "flex", alignItems: "center", gap: 8, padding: "7px 0", borderBottom: "1px solid rgba(0,0,0,0.08)" }}>
                   {/* Cluegiver checkbox — clickable only if I'm on this team */}
                   <button
                     onClick={() => me?.team === team && toggleCluegiver(p.id)}
                     disabled={me?.team !== team}
                     style={{
                       width: 18, height: 18, flexShrink: 0, padding: 0,
-                      background: p.is_cluegiver ? color : "rgba(255,255,255,0.15)",
+                      background: p.is_cluegiver ? color : "rgba(0,0,0,0.12)",
                       border: `2px solid ${p.is_cluegiver ? color : "rgba(255,255,255,0.3)"}`,
                       display: "flex", alignItems: "center", justifyContent: "center",
                       opacity: me?.team !== team ? 0.4 : 1,
@@ -404,7 +406,7 @@ export default function Lobby({ params }) {
                     {p.id === myPlayerId && <span style={{ opacity: 0.4, fontSize: 11, fontWeight: 600 }}> you</span>}
                     {p.is_cluegiver && <span style={{ fontSize: 10, fontWeight: 700, color, marginLeft: 4, opacity: 0.8 }}>spy</span>}
                   </span>
-                  <div style={{ width: 7, height: 7, borderRadius: "50%", background: p.ready ? "#12BAAA" : "rgba(255,255,255,0.2)", flexShrink: 0 }} />
+                  <div style={{ width: 7, height: 7, borderRadius: "50%", background: p.ready ? "#12BAAA" : "rgba(0,0,0,0.18)", flexShrink: 0 }} />
                 </div>
               ))}
             </div>
@@ -416,7 +418,7 @@ export default function Lobby({ params }) {
       <div style={{ padding: "28px 24px 0" }}>
         {!me ? (
           <>
-            <div style={{ fontSize: 11, fontWeight: 800, textTransform: "uppercase", letterSpacing: "0.15em", color: "rgba(255,255,255,0.4)", marginBottom: 14 }}>
+            <div style={{ fontSize: 11, fontWeight: 800, textTransform: "uppercase", letterSpacing: "0.15em", color: "rgba(0,0,0,0.4)", marginBottom: 14 }}>
               Join Game
             </div>
             {!savedProfile && (
@@ -460,7 +462,7 @@ export default function Lobby({ params }) {
           </>
         ) : (
           <>
-            <div style={{ fontSize: 11, fontWeight: 800, textTransform: "uppercase", letterSpacing: "0.15em", color: "rgba(255,255,255,0.4)", marginBottom: 14 }}>
+            <div style={{ fontSize: 11, fontWeight: 800, textTransform: "uppercase", letterSpacing: "0.15em", color: "rgba(0,0,0,0.4)", marginBottom: 14 }}>
               You
             </div>
             <div style={{ fontSize: 22, fontWeight: 900, marginBottom: 16 }}>
@@ -484,7 +486,7 @@ export default function Lobby({ params }) {
                 <button
                   disabled={me.ready}
                   onClick={switchTeams}
-                  style={{ background: "rgba(255,255,255,0.12)", color: "white", fontSize: 14, fontWeight: 800, padding: "12px 18px" }}
+                  style={{ background: "rgba(0,0,0,0.1)", color: TEXT, fontSize: 14, fontWeight: 800, padding: "12px 18px" }}
                 >
                   Switch Teams
                 </button>

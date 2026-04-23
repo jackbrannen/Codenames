@@ -4,23 +4,28 @@ import { useEffect, useMemo, useRef, useState } from "react"
 import { useRouter } from "next/navigation"
 import { supabase } from "../../../lib/supabase"
 
-const BG = "#1C1305"
+const BG = "#C0B298"
 const TAN = "#C4924A"
 const RED_COLOR = "#CC2222"
 const BLUE_COLOR = "#1E50B5"
-const CARD_CREAM = "#F0E6CC"
+const CARD_CREAM = "#F2EAD8"
+const TEXT = "#1A1008"
 
 // Muted tints for cluegiver's unrevealed view
 const RED_MUTED    = "#E8A0A0"
 const BLUE_MUTED   = "#9DB8E8"
-const BLACK_MUTED  = "#999999"
-const TAN_MUTED    = "#DDD0B0"
+const BLACK_MUTED  = "#888888"
+const TAN_MUTED    = "#D8C8A8"
 
 // Revealed colors (shown to everyone)
 const RED_FULL     = "#CC2222"
 const BLUE_FULL    = "#1E50B5"
 const BLACK_FULL   = "#111111"
 const TAN_FULL     = "#C4924A"
+
+function titleCase(word) {
+  return word.split(" ").map(w => w.charAt(0) + w.slice(1).toLowerCase()).join(" ")
+}
 
 function cardBg(card, isCluegiver) {
   if (card.revealed) {
@@ -40,14 +45,15 @@ function cardBg(card, isCluegiver) {
 
 function cardText(card, isCluegiver) {
   if (card.revealed) {
-    if (card.color === "black") return "rgba(255,255,255,0.75)"
+    if (card.color === "black") return "rgba(255,255,255,0.85)"
+    if (card.color === "tan") return TEXT
     return "white"
   }
   if (isCluegiver) {
     if (card.color === "black") return "rgba(255,255,255,0.9)"
-    return "rgba(0,0,0,0.7)"
+    return TEXT
   }
-  return "#2A1A08"
+  return TEXT
 }
 
 function teamColor(team) {
@@ -184,10 +190,10 @@ export default function Play({ params }) {
   const turnColor = teamColor(game.turn_team)
 
   return (
-    <div style={{ minHeight: "100dvh", background: BG, color: "white", display: "flex", flexDirection: "column" }}>
+    <div style={{ minHeight: "100dvh", background: BG, color: TEXT, display: "flex", flexDirection: "column" }}>
 
       {/* Header bar */}
-      <div style={{ background: "rgba(0,0,0,0.4)", padding: "12px 16px", display: "flex", alignItems: "center", gap: 12, flexShrink: 0 }}>
+      <div style={{ background: "rgba(0,0,0,0.18)", padding: "12px 16px", display: "flex", alignItems: "center", gap: 12, flexShrink: 0 }}>
         {game.phase === "finished" ? (
           <div style={{ flex: 1, fontSize: 22, fontWeight: 900, color: winnerColor, textTransform: "uppercase", letterSpacing: "0.06em" }}>
             {teamLabel(game.winning_team)} Wins!
@@ -197,10 +203,10 @@ export default function Play({ params }) {
             <div style={{ fontSize: 15, fontWeight: 900, color: turnColor, textTransform: "uppercase", letterSpacing: "0.08em", whiteSpace: "nowrap" }}>
               {teamLabel(game.turn_team)}'s Turn
             </div>
-            <div style={{ fontSize: 12, fontWeight: 700, color: "rgba(255,255,255,0.5)", whiteSpace: "nowrap" }}>
+            <div style={{ fontSize: 12, fontWeight: 700, color: "rgba(0,0,0,0.45)", whiteSpace: "nowrap" }}>
               Needed:
               <span style={{ color: RED_COLOR, marginLeft: 6 }}>Red {redLeft}</span>
-              <span style={{ color: "rgba(255,255,255,0.3)", margin: "0 4px" }}>·</span>
+              <span style={{ color: "rgba(0,0,0,0.25)", margin: "0 4px" }}>·</span>
               <span style={{ color: BLUE_COLOR }}>Blue {blueLeft}</span>
             </div>
           </div>
@@ -214,14 +220,14 @@ export default function Play({ params }) {
 
       {/* Active clue display (during guess phase) */}
       {game.phase === "play" && game.turn_phase === "guess" && (
-        <div style={{ padding: "14px 16px", background: "rgba(0,0,0,0.25)", textAlign: "center", borderBottom: "1px solid rgba(255,255,255,0.08)", flexShrink: 0 }}>
+        <div style={{ padding: "14px 16px", background: "rgba(0,0,0,0.12)", textAlign: "center", borderBottom: "1px solid rgba(0,0,0,0.1)", flexShrink: 0 }}>
           <span style={{ fontSize: 28, fontWeight: 900, letterSpacing: "0.05em", color: turnColor }}>
             {game.current_clue_word}
           </span>
-          <span style={{ fontSize: 22, fontWeight: 900, color: "rgba(255,255,255,0.5)", marginLeft: 10 }}>
+          <span style={{ fontSize: 22, fontWeight: 900, color: "rgba(0,0,0,0.4)", marginLeft: 10 }}>
             {game.current_clue_number}
           </span>
-          <div style={{ fontSize: 12, fontWeight: 700, color: "rgba(255,255,255,0.4)", marginTop: 4 }}>
+          <div style={{ fontSize: 12, fontWeight: 700, color: "rgba(0,0,0,0.4)", marginTop: 4 }}>
             {allGuessesUsed
               ? "All guesses used"
               : `Guesses used: ${game.guesses_used} / ${game.current_clue_number + 1}`}
@@ -243,7 +249,8 @@ export default function Play({ params }) {
             const bg = cardBg(card, isCluegiver)
             const textColor = cardText(card, isCluegiver)
             const wordLen = card.word.length
-            const fontSize = wordLen > 10 ? 10 : wordLen > 7 ? 12 : 14
+            const fontSize = wordLen <= 4 ? 20 : wordLen <= 6 ? 17 : wordLen <= 8 ? 14 : 12
+            const display = titleCase(card.word)
 
             return (
               <div
@@ -262,27 +269,28 @@ export default function Play({ params }) {
                   textAlign: "center",
                   fontSize,
                   fontWeight: 800,
-                  lineHeight: 1.2,
+                  lineHeight: 1.15,
+                  wordBreak: "break-word",
                   cursor: canTap ? "pointer" : "default",
-                  boxShadow: isSelected ? "0 0 0 3px white, 0 0 0 5px rgba(0,0,0,0.4)" : "none",
+                  boxShadow: isSelected ? "0 0 0 3px white, 0 0 0 5px rgba(0,0,0,0.35)" : "none",
                   userSelect: "none",
                   WebkitUserSelect: "none",
                   transition: "box-shadow 0.1s",
-                  opacity: card.revealed && !isCluegiver ? 0.8 : 1,
+                  opacity: card.revealed && !isCluegiver ? 0.75 : 1,
                   position: "relative",
                 }}
               >
-                {card.word}
+                {display}
                 {/* Revealed overlay for cluegiver */}
                 {card.revealed && isCluegiver && (
                   <div style={{
                     position: "absolute", inset: 0,
-                    background: "rgba(0,0,0,0.3)",
+                    background: "rgba(0,0,0,0.28)",
                     display: "flex", alignItems: "center", justifyContent: "center",
                     padding: 4,
                   }}>
-                    <div style={{ fontSize, fontWeight: 800, color: "rgba(255,255,255,0.9)", lineHeight: 1.2, textAlign: "center", overflow: "hidden" }}>
-                      {card.word}
+                    <div style={{ fontSize, fontWeight: 800, color: "rgba(255,255,255,0.9)", lineHeight: 1.15, textAlign: "center", wordBreak: "break-word" }}>
+                      {display}
                     </div>
                   </div>
                 )}
@@ -298,12 +306,12 @@ export default function Play({ params }) {
         {/* ---- GAME OVER ---- */}
         {game.phase === "finished" && (
           <div style={{ paddingTop: 4 }}>
-            <div style={{ fontSize: 16, fontWeight: 700, color: "rgba(255,255,255,0.55)", textAlign: "center", marginBottom: 12 }}>
-              {game.winning_team === myTeam ? "Your team won! 🎉" : myTeam ? "Your team lost." : "Game over."}
+            <div style={{ fontSize: 16, fontWeight: 700, color: "rgba(0,0,0,0.5)", textAlign: "center", marginBottom: 12 }}>
+              {game.winning_team === myTeam ? "Your team won!" : myTeam ? "Your team lost." : "Game over."}
             </div>
             <button
               onClick={playAgain}
-              style={{ background: TAN, color: "#000", fontSize: 20, fontWeight: 900, padding: "18px", width: "100%", display: "block" }}
+              style={{ background: TEXT, color: "white", fontSize: 20, fontWeight: 900, padding: "18px", width: "100%", display: "block" }}
             >
               Play Again
             </button>
@@ -315,7 +323,7 @@ export default function Play({ params }) {
           <>
             {isMyTurn && isCluegiver ? (
               <div>
-                <div style={{ fontSize: 12, fontWeight: 800, textTransform: "uppercase", letterSpacing: "0.12em", color: "rgba(255,255,255,0.4)", marginBottom: 10 }}>
+                <div style={{ fontSize: 12, fontWeight: 800, textTransform: "uppercase", letterSpacing: "0.12em", color: "rgba(0,0,0,0.4)", marginBottom: 10 }}>
                   Your Clue
                 </div>
                 <input
@@ -325,15 +333,13 @@ export default function Play({ params }) {
                   placeholder="One word…"
                   maxLength={30}
                   style={{
-                    background: "rgba(255,255,255,0.12)",
-                    color: "white",
+                    background: "rgba(0,0,0,0.12)",
+                    color: TEXT,
                     fontSize: 22,
                     fontWeight: 800,
                     padding: "14px 16px",
                     width: "100%",
                     display: "block",
-                    textTransform: "uppercase",
-                    letterSpacing: "0.06em",
                     boxSizing: "border-box",
                     marginBottom: 10,
                   }}
@@ -346,8 +352,8 @@ export default function Play({ params }) {
                       style={{
                         flex: 1,
                         aspectRatio: "1",
-                        background: clueNum === n ? turnColor : "rgba(255,255,255,0.12)",
-                        color: clueNum === n ? "white" : "rgba(255,255,255,0.7)",
+                        background: clueNum === n ? turnColor : "rgba(0,0,0,0.12)",
+                        color: clueNum === n ? "white" : TEXT,
                         fontSize: 16,
                         fontWeight: 900,
                         display: "flex", alignItems: "center", justifyContent: "center",
@@ -368,7 +374,7 @@ export default function Play({ params }) {
               </div>
             ) : (
               <div style={{ textAlign: "center", padding: "20px 0" }}>
-                <div style={{ fontSize: 14, fontWeight: 700, color: "rgba(255,255,255,0.4)", letterSpacing: "0.06em" }}>
+                <div style={{ fontSize: 14, fontWeight: 700, color: "rgba(0,0,0,0.4)", letterSpacing: "0.06em" }}>
                   Waiting for{" "}
                   <span style={{ color: turnColor, fontWeight: 900 }}>
                     {teamLabel(game.turn_team)}
@@ -403,7 +409,7 @@ export default function Play({ params }) {
                     </button>
                     <button
                       onClick={endTurn}
-                      style={{ background: "rgba(255,255,255,0.12)", color: "white", fontSize: 16, fontWeight: 800, padding: "16px 20px", flexShrink: 0 }}
+                      style={{ background: "rgba(0,0,0,0.15)", color: TEXT, fontSize: 16, fontWeight: 800, padding: "16px 20px", flexShrink: 0 }}
                     >
                       End Turn
                     </button>
@@ -412,7 +418,7 @@ export default function Play({ params }) {
               </div>
             ) : (
               <div style={{ textAlign: "center", padding: "16px 0" }}>
-                <div style={{ fontSize: 14, fontWeight: 700, color: "rgba(255,255,255,0.4)", letterSpacing: "0.06em" }}>
+                <div style={{ fontSize: 14, fontWeight: 700, color: "rgba(0,0,0,0.4)", letterSpacing: "0.06em" }}>
                   {isMyTurn && isCluegiver
                     ? <><span style={{ color: turnColor, fontWeight: 900 }}>Your team</span> is guessing…</>
                     : <>Waiting for <span style={{ color: turnColor, fontWeight: 900 }}>{teamLabel(game.turn_team)}</span> to guess…</>

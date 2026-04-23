@@ -5,7 +5,7 @@ import { useRouter } from "next/navigation"
 import { supabase } from "../lib/supabase"
 import { pick25Words } from "../lib/words"
 
-const BG = "#1C1305"
+const BG = "#C0B298"
 const TAN = "#C4924A"
 const RED = "#CC2222"
 const BLUE = "#1E50B5"
@@ -119,7 +119,7 @@ export default function Home() {
       <h1 style={{
         fontSize: "clamp(48px, 14vw, 88px)",
         fontWeight: 900,
-        color: "white",
+        color: "#1A1008",
         letterSpacing: "-2px",
         lineHeight: 0.9,
         textAlign: "center",
@@ -129,7 +129,7 @@ export default function Home() {
       </h1>
 
       <p style={{
-        color: "rgba(255,255,255,0.4)",
+        color: "rgba(0,0,0,0.4)",
         fontSize: 13,
         fontWeight: 700,
         textAlign: "center",
@@ -167,8 +167,8 @@ export default function Home() {
             style={{
               flex: 1,
               minWidth: 0,
-              background: "rgba(255,255,255,0.12)",
-              color: "white",
+              background: "rgba(0,0,0,0.1)",
+              color: "#1A1008",
               fontSize: 18,
               fontWeight: 800,
               padding: "18px 16px",
@@ -179,8 +179,8 @@ export default function Home() {
           <button
             onClick={onJoin}
             style={{
-              background: "rgba(255,255,255,0.12)",
-              color: "white",
+              background: "rgba(0,0,0,0.1)",
+              color: "#1A1008",
               fontSize: 18,
               fontWeight: 900,
               padding: "18px 20px",
@@ -203,7 +203,7 @@ export default function Home() {
         disabled={isCreating}
         style={{
           position: "fixed", bottom: 20, left: "50%", transform: "translateX(-50%)",
-          background: "rgba(255,255,255,0.07)", color: "rgba(255,255,255,0.35)",
+          background: "rgba(0,0,0,0.08)", color: "rgba(0,0,0,0.35)",
           fontSize: 11, fontWeight: 700, padding: "8px 16px",
           letterSpacing: "0.1em", textTransform: "uppercase", whiteSpace: "nowrap",
         }}
