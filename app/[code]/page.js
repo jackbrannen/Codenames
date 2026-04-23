@@ -139,9 +139,9 @@ export default function Lobby({ params }) {
     if (gamePhase === "play") router.replace(`/${code}/play`)
   }, [gamePhase])
 
-  async function join() {
+  async function join(team) {
     const trimmed = name.trim()
-    if (!trimmed || joining) return
+    if (!trimmed || joining || !team) return
     const trimmedFirst = (savedProfile?.firstName || firstName).trim()
     const trimmedLast = (savedProfile?.lastName || lastName).trim()
     if (!trimmedFirst || !trimmedLast) return
@@ -167,7 +167,7 @@ export default function Lobby({ params }) {
 
     const { data, error } = await supabase
       .from("codenames_players")
-      .insert({ game_code: code, name: trimmed, first_name: trimmedFirst, last_name: trimmedLast })
+      .insert({ game_code: code, name: trimmed, first_name: trimmedFirst, last_name: trimmedLast, team })
       .select("id")
       .single()
 
@@ -378,28 +378,25 @@ export default function Lobby({ params }) {
               )}
 
               {teamPlayers.map(p => (
-                <div key={p.id} style={{ display: "flex", alignItems: "center", gap: 6, padding: "7px 0", borderBottom: "1px solid rgba(0,0,0,0.08)" }}>
-                  <span style={{ fontSize: 15, fontWeight: 700, lineHeight: 1.2, flex: 1, minWidth: 0, overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>
-                    {p.name}
+                <div
+                  key={p.id}
+                  onClick={() => me?.team === team && toggleCluegiver(p.id)}
+                  style={{
+                    display: "flex", alignItems: "center", gap: 6, padding: "7px 0",
+                    borderBottom: "1px solid rgba(0,0,0,0.08)",
+                    cursor: me?.team === team ? "pointer" : "default",
+                  }}
+                >
+                  <span style={{ fontSize: 15, fontWeight: 700, lineHeight: 1.2, flex: 1, minWidth: 0, overflow: "hidden" }}>
+                    <span style={{ display: "inline" }}>{p.name}</span>
                     {p.id === myPlayerId && <span style={{ opacity: 0.4, fontSize: 11, fontWeight: 600 }}> you</span>}
+                    {p.is_cluegiver && (
+                      <span style={{ background: color, color: "white", fontSize: 9, fontWeight: 900, padding: "1px 5px", marginLeft: 5, letterSpacing: "0.06em", textTransform: "uppercase", verticalAlign: "middle" }}>
+                        Spy
+                      </span>
+                    )}
                   </span>
                   <div style={{ width: 7, height: 7, borderRadius: "50%", background: p.ready ? "#12BAAA" : "rgba(0,0,0,0.18)", flexShrink: 0 }} />
-                  {me?.team === team && (
-                    <button
-                      onClick={() => toggleCluegiver(p.id)}
-                      style={{
-                        background: p.is_cluegiver ? color : "rgba(0,0,0,0.1)",
-                        color: p.is_cluegiver ? "white" : "rgba(0,0,0,0.4)",
-                        fontSize: 9, fontWeight: 900,
-                        padding: "3px 6px",
-                        textTransform: "uppercase",
-                        letterSpacing: "0.05em",
-                        flexShrink: 0,
-                      }}
-                    >
-                      Spy
-                    </button>
-                  )}
                 </div>
               ))}
 
@@ -450,13 +447,22 @@ export default function Lobby({ params }) {
               maxLength={45}
               style={inputStyle}
             />
-            <button
-              onClick={join}
-              disabled={!name.trim() || (!savedProfile && (!firstName.trim() || !lastName.trim())) || joining}
-              style={{ background: TAN, color: "#000", fontSize: 20, fontWeight: 900, padding: "18px", width: "100%", marginTop: 8, display: "block" }}
-            >
-              {joining ? "Joining…" : "Join"}
-            </button>
+            <div style={{ display: "flex", gap: 8, marginTop: 8 }}>
+              <button
+                onClick={() => join("red")}
+                disabled={!name.trim() || (!savedProfile && (!firstName.trim() || !lastName.trim())) || joining}
+                style={{ background: RED_COLOR, color: "white", fontSize: 16, fontWeight: 900, padding: "16px", flex: 1, display: "block" }}
+              >
+                {joining ? "…" : "Join Red"}
+              </button>
+              <button
+                onClick={() => join("blue")}
+                disabled={!name.trim() || (!savedProfile && (!firstName.trim() || !lastName.trim())) || joining}
+                style={{ background: BLUE_COLOR, color: "white", fontSize: 16, fontWeight: 900, padding: "16px", flex: 1, display: "block" }}
+              >
+                {joining ? "…" : "Join Blue"}
+              </button>
+            </div>
             {joinError && (
               <div style={{ fontSize: 14, fontWeight: 700, color: "#F04F52", marginTop: 10 }}>
                 {joinError}
@@ -513,9 +519,9 @@ export default function Lobby({ params }) {
             </div>
 
             {me.team && !me.ready && !canReady && (
-              <p style={{ marginTop: 12, fontSize: 13, opacity: 0.55, fontWeight: 600, color: TAN }}>
+              <p style={{ marginTop: 12, fontSize: 13, fontWeight: 700, color: TEXT }}>
                 {!myTeamCluegiver
-                  ? "Your team needs a cluegiver before you can ready up."
+                  ? "Your team needs a spy before you can ready up."
                   : myTeamSize < 2
                   ? "Your team needs at least 2 players."
                   : "The other team needs at least 2 players."}

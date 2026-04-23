@@ -78,6 +78,7 @@ export default function Play({ params }) {
   const [submittingClue, setSubmittingClue] = useState(false)
   const [submittingGuess, setSubmittingGuess] = useState(false)
   const [revealFeedback, setRevealFeedback] = useState(null)
+  const [showClueRules, setShowClueRules] = useState(false)
   const loadEpochRef = useRef(0)
 
   async function loadState() {
@@ -126,6 +127,8 @@ export default function Play({ params }) {
   const allGuessesUsed = game?.turn_phase === "guess" &&
     game?.current_clue_number != null &&
     (game?.guesses_used ?? 0) >= game.current_clue_number + 1
+
+  const turnCluegiver = players.find(p => p.team === game?.turn_team && p.is_cluegiver)
 
   // Counts of un-revealed cards per team
   const redLeft  = cards.filter(c => c.color === "red"  && !c.revealed).length
@@ -202,26 +205,22 @@ export default function Play({ params }) {
     <div style={{ minHeight: "100dvh", background: BG, color: TEXT, display: "flex", flexDirection: "column" }}>
 
       {/* Header bar */}
-      <div style={{ background: "rgba(0,0,0,0.18)", padding: "12px 16px", display: "flex", alignItems: "center", gap: 12, flexShrink: 0 }}>
+      <div style={{ background: "rgba(0,0,0,0.18)", padding: "12px 16px", display: "flex", alignItems: "center", justifyContent: "space-between", gap: 12, flexShrink: 0 }}>
         {game.phase === "finished" ? (
-          <div style={{ flex: 1, fontSize: 22, fontWeight: 900, color: winnerColor, textTransform: "uppercase", letterSpacing: "0.06em" }}>
+          <div style={{ fontSize: 22, fontWeight: 900, color: winnerColor, textTransform: "uppercase", letterSpacing: "0.06em" }}>
             {teamLabel(game.winning_team)} Wins!
           </div>
         ) : (
-          <div style={{ flex: 1, display: "flex", alignItems: "center", gap: 8, flexWrap: "wrap" }}>
+          <>
             <div style={{ background: turnColor, color: "white", fontSize: 13, fontWeight: 900, padding: "4px 10px", textTransform: "uppercase", letterSpacing: "0.08em", whiteSpace: "nowrap" }}>
               {teamLabel(game.turn_team)}'s Turn
             </div>
-            <div style={{ display: "flex", gap: 5, alignItems: "center" }}>
+            <div style={{ display: "flex", alignItems: "center", gap: 6, flexShrink: 0 }}>
+              <span style={{ fontSize: 11, fontWeight: 700, color: TEXT, opacity: 0.55, whiteSpace: "nowrap" }}>Needed to win:</span>
               <span style={{ background: RED_COLOR, color: "white", fontSize: 12, fontWeight: 800, padding: "3px 7px" }}>Red {redLeft}</span>
               <span style={{ background: BLUE_COLOR, color: "white", fontSize: 12, fontWeight: 800, padding: "3px 7px" }}>Blue {blueLeft}</span>
             </div>
-          </div>
-        )}
-        {isCluegiver && game.phase === "play" && (
-          <div style={{ fontSize: 10, fontWeight: 800, textTransform: "uppercase", letterSpacing: "0.1em", color: myTeam === "red" ? RED_COLOR : BLUE_COLOR, flexShrink: 0 }}>
-            Cluegiver
-          </div>
+          </>
         )}
       </div>
 
@@ -340,27 +339,36 @@ export default function Play({ params }) {
           <>
             {isMyTurn && isCluegiver ? (
               <div>
-                <div style={{ fontSize: 12, fontWeight: 800, textTransform: "uppercase", letterSpacing: "0.12em", color: "rgba(0,0,0,0.4)", marginBottom: 10 }}>
-                  Your Clue
+                <div style={{ position: "relative", marginBottom: 10 }}>
+                  <input
+                    value={clueWord}
+                    onChange={e => setClueWord(e.target.value.replace(/[^a-zA-Z\s]/g, ""))}
+                    onKeyDown={e => e.key === "Enter" && clueNum && submitClue()}
+                    placeholder="Your clue"
+                    maxLength={30}
+                    style={{
+                      background: "rgba(0,0,0,0.12)",
+                      color: TEXT,
+                      fontSize: 22,
+                      fontWeight: 800,
+                      padding: "14px 52px 14px 16px",
+                      width: "100%",
+                      display: "block",
+                      boxSizing: "border-box",
+                    }}
+                  />
+                  <button
+                    onClick={() => setShowClueRules(true)}
+                    style={{
+                      position: "absolute", right: 0, top: 0, bottom: 0, width: 48,
+                      background: "rgba(0,0,0,0.08)", color: "rgba(0,0,0,0.45)",
+                      fontSize: 18, fontWeight: 900,
+                      display: "flex", alignItems: "center", justifyContent: "center",
+                    }}
+                  >
+                    ?
+                  </button>
                 </div>
-                <input
-                  value={clueWord}
-                  onChange={e => setClueWord(e.target.value.replace(/[^a-zA-Z\s]/g, ""))}
-                  onKeyDown={e => e.key === "Enter" && clueNum && submitClue()}
-                  placeholder="One word…"
-                  maxLength={30}
-                  style={{
-                    background: "rgba(0,0,0,0.12)",
-                    color: TEXT,
-                    fontSize: 22,
-                    fontWeight: 800,
-                    padding: "14px 16px",
-                    width: "100%",
-                    display: "block",
-                    boxSizing: "border-box",
-                    marginBottom: 10,
-                  }}
-                />
                 <div style={{ display: "flex", gap: 6, marginBottom: 10, justifyContent: "space-between" }}>
                   {[1,2,3,4,5,6,7,8,9].map(n => (
                     <button
@@ -394,9 +402,9 @@ export default function Play({ params }) {
                 <div style={{ fontSize: 14, fontWeight: 700, color: "rgba(0,0,0,0.4)", letterSpacing: "0.06em" }}>
                   Waiting for{" "}
                   <span style={{ color: turnColor, fontWeight: 900 }}>
-                    {teamLabel(game.turn_team)}
+                    {turnCluegiver?.name ?? teamLabel(game.turn_team)}
                   </span>
-                  {" "}cluegiver…
+                  {"'s clue…"}
                 </div>
               </div>
             )}
@@ -447,6 +455,72 @@ export default function Play({ params }) {
         )}
 
       </div>
+
+      {/* Clue Rules Popup */}
+      {showClueRules && (
+        <div
+          onClick={() => setShowClueRules(false)}
+          style={{ position: "fixed", inset: 0, background: "rgba(0,0,0,0.55)", zIndex: 100, display: "flex", alignItems: "flex-end" }}
+        >
+          <div
+            onClick={e => e.stopPropagation()}
+            style={{ background: BG, width: "100%", maxHeight: "80vh", borderRadius: "12px 12px 0 0", display: "flex", flexDirection: "column" }}
+          >
+            <div style={{ padding: "16px 20px", display: "flex", justifyContent: "space-between", alignItems: "center", borderBottom: "1px solid rgba(0,0,0,0.1)", flexShrink: 0 }}>
+              <span style={{ fontSize: 17, fontWeight: 900, color: TEXT }}>What clues are allowed?</span>
+              <button onClick={() => setShowClueRules(false)} style={{ background: "none", color: TEXT, fontSize: 22, fontWeight: 700, padding: "4px 8px", lineHeight: 1 }}>✕</button>
+            </div>
+            <div style={{ flex: 1, overflowY: "auto", padding: "20px" }}>
+              <div style={{ display: "flex", gap: 12, marginBottom: 16 }}>
+                <span style={{ fontSize: 20, color: "#1A6B1A", flexShrink: 0, marginTop: 1 }}>✓</span>
+                <div style={{ fontSize: 15, fontWeight: 700, color: TEXT, lineHeight: 1.5 }}>Any one-word clue is allowed.</div>
+              </div>
+              <div style={{ display: "flex", gap: 12, marginBottom: 20 }}>
+                <span style={{ fontSize: 20, color: "#1A6B1A", flexShrink: 0, marginTop: 1 }}>✓</span>
+                <div>
+                  <div style={{ fontSize: 15, fontWeight: 700, color: TEXT, lineHeight: 1.5, marginBottom: 6 }}>Compound words are okay:</div>
+                  <ul style={{ paddingLeft: 18, fontSize: 14, lineHeight: 1.7, color: TEXT, opacity: 0.7 }}>
+                    <li style={{ marginBottom: 2 }}>Words that are always hyphenated ("mother-in-law")</li>
+                    <li style={{ marginBottom: 2 }}>Anything commonly treated as one word ("ice cream")</li>
+                    <li>Names ("Ariana Grande")</li>
+                  </ul>
+                </div>
+              </div>
+              <div style={{ display: "flex", gap: 12, marginBottom: 16 }}>
+                <span style={{ fontSize: 20, color: RED_COLOR, flexShrink: 0, marginTop: 1 }}>✗</span>
+                <div>
+                  <div style={{ fontSize: 15, fontWeight: 700, color: TEXT, lineHeight: 1.5, marginBottom: 6 }}>You can't use phrases, sayings, or random combos:</div>
+                  <ul style={{ paddingLeft: 18, fontSize: 14, lineHeight: 1.7, color: TEXT, opacity: 0.7 }}>
+                    <li style={{ marginBottom: 2 }}><s>"lake swimming"</s></li>
+                    <li style={{ marginBottom: 2 }}><s>"chocolate ice cream"</s></li>
+                    <li><s>"under the weather"</s></li>
+                  </ul>
+                </div>
+              </div>
+              <div style={{ display: "flex", gap: 12, marginBottom: 16 }}>
+                <span style={{ fontSize: 20, color: RED_COLOR, flexShrink: 0, marginTop: 1 }}>✗</span>
+                <div style={{ fontSize: 15, fontWeight: 700, color: TEXT, lineHeight: 1.5 }}>You can't use any words from the board.</div>
+              </div>
+              <div style={{ display: "flex", gap: 12, marginBottom: 16 }}>
+                <span style={{ fontSize: 20, color: RED_COLOR, flexShrink: 0, marginTop: 1 }}>✗</span>
+                <div style={{ fontSize: 15, fontWeight: 700, color: TEXT, lineHeight: 1.5 }}>Clues must relate to the meaning of the words on the board, not their position, spelling, etc.</div>
+              </div>
+              <div style={{ display: "flex", gap: 12 }}>
+                <span style={{ fontSize: 20, color: RED_COLOR, flexShrink: 0, marginTop: 1 }}>✗</span>
+                <div style={{ fontSize: 15, fontWeight: 700, color: TEXT, lineHeight: 1.5 }}>You can't add additional commentary, like "Only Sarah will get this" or "this one is a stretch."</div>
+              </div>
+            </div>
+            <div style={{ padding: "12px 20px 28px", flexShrink: 0 }}>
+              <button
+                onClick={() => setShowClueRules(false)}
+                style={{ background: TEXT, color: "white", fontSize: 17, fontWeight: 900, padding: "16px", width: "100%", display: "block" }}
+              >
+                Got it
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   )
 }
