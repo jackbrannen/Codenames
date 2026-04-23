@@ -364,7 +364,7 @@ export default function Lobby({ params }) {
                 <div style={{ fontSize: 12, fontWeight: 800, textTransform: "uppercase", letterSpacing: "0.12em", color, opacity: 0.9 }}>
                   {label}
                 </div>
-                {!me?.team && (
+                {me && !me.team && (
                   <button
                     onClick={() => joinTeam(team)}
                     style={{ background: color, color: "white", fontSize: 10, fontWeight: 900, padding: "4px 8px", textTransform: "uppercase", letterSpacing: "0.08em" }}
