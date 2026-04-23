@@ -230,8 +230,8 @@ export default function Play({ params }) {
       )}
 
       {/* Game board */}
-      <div style={{ padding: "12px", flex: 1 }}>
-        <div style={{ display: "grid", gridTemplateColumns: "repeat(5, 1fr)", gap: 5 }}>
+      <div style={{ padding: "10px", flex: 1, width: "100%", boxSizing: "border-box", overflow: "hidden" }}>
+        <div style={{ display: "grid", gridTemplateColumns: "repeat(5, 1fr)", gap: 5, width: "100%" }}>
           {cards.map(card => {
             const isSelected = card.id === game.turn_selected_card_id
             const canTap = !card.revealed &&
@@ -242,6 +242,8 @@ export default function Play({ params }) {
               !allGuessesUsed
             const bg = cardBg(card, isCluegiver)
             const textColor = cardText(card, isCluegiver)
+            const wordLen = card.word.length
+            const fontSize = wordLen > 10 ? 10 : wordLen > 7 ? 12 : 14
 
             return (
               <div
@@ -249,17 +251,17 @@ export default function Play({ params }) {
                 onClick={() => canTap && selectCard(card.id)}
                 style={{
                   aspectRatio: "1",
+                  minWidth: 0,
+                  overflow: "hidden",
                   background: bg,
                   color: textColor,
                   display: "flex",
                   alignItems: "center",
                   justifyContent: "center",
-                  padding: 3,
+                  padding: 4,
                   textAlign: "center",
-                  fontSize: card.word.length > 9 ? 8 : card.word.length > 6 ? 10 : 12,
-                  fontWeight: 900,
-                  textTransform: "uppercase",
-                  letterSpacing: "0.03em",
+                  fontSize,
+                  fontWeight: 800,
                   lineHeight: 1.2,
                   cursor: canTap ? "pointer" : "default",
                   boxShadow: isSelected ? "0 0 0 3px white, 0 0 0 5px rgba(0,0,0,0.4)" : "none",
@@ -271,14 +273,15 @@ export default function Play({ params }) {
                 }}
               >
                 {card.word}
-                {/* Revealed overlay indicator for cluegiver */}
+                {/* Revealed overlay for cluegiver */}
                 {card.revealed && isCluegiver && (
                   <div style={{
                     position: "absolute", inset: 0,
                     background: "rgba(0,0,0,0.3)",
                     display: "flex", alignItems: "center", justifyContent: "center",
+                    padding: 4,
                   }}>
-                    <div style={{ fontSize: card.word.length > 9 ? 8 : 10, fontWeight: 900, color: "rgba(255,255,255,0.9)", textTransform: "uppercase", letterSpacing: "0.03em" }}>
+                    <div style={{ fontSize, fontWeight: 800, color: "rgba(255,255,255,0.9)", lineHeight: 1.2, textAlign: "center", overflow: "hidden" }}>
                       {card.word}
                     </div>
                   </div>
