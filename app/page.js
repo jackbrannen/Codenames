@@ -125,7 +125,7 @@ export default function Home() {
         textAlign: "center",
         marginBottom: 12,
       }}>
-        Code<br />names
+        Code<br />Names
       </h1>
 
       <p style={{

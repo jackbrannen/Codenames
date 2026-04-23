@@ -27,20 +27,21 @@ function titleCase(word) {
   return word.split(" ").map(w => w.charAt(0) + w.slice(1).toLowerCase()).join(" ")
 }
 
-function cardBg(card, isCluegiver) {
+function cardBg(card) {
   if (card.revealed) {
     if (card.color === "red")   return RED_FULL
     if (card.color === "blue")  return BLUE_FULL
     if (card.color === "black") return BLACK_FULL
     return TAN_FULL
   }
-  if (isCluegiver) {
-    if (card.color === "red")   return RED_MUTED
-    if (card.color === "blue")  return BLUE_MUTED
-    if (card.color === "black") return BLACK_MUTED
-    return TAN_MUTED
-  }
   return CARD_CREAM
+}
+
+function cluegiverBorderColor(card) {
+  if (card.color === "red")   return RED_FULL
+  if (card.color === "blue")  return BLUE_FULL
+  if (card.color === "black") return "#333333"
+  return TAN_FULL
 }
 
 function cardText(card, isCluegiver) {
@@ -76,6 +77,7 @@ export default function Play({ params }) {
   const [clueNum, setClueNum] = useState(null)
   const [submittingClue, setSubmittingClue] = useState(false)
   const [submittingGuess, setSubmittingGuess] = useState(false)
+  const [revealFeedback, setRevealFeedback] = useState(null)
   const loadEpochRef = useRef(0)
 
   async function loadState() {
@@ -156,6 +158,7 @@ export default function Play({ params }) {
 
   async function submitGuess() {
     if (!game?.turn_selected_card_id || submittingGuess) return
+    const revealingCard = cards.find(c => c.id === game.turn_selected_card_id)
     setSubmittingGuess(true)
     await supabase.rpc("submit_codenames_guess", {
       p_code: code,
@@ -163,6 +166,12 @@ export default function Play({ params }) {
     })
     setSubmittingGuess(false)
     await loadState()
+    if (revealingCard) {
+      const correct = revealingCard.color === game.turn_team
+      const black = revealingCard.color === "black"
+      setRevealFeedback(black ? "black" : correct ? "correct" : "incorrect")
+      setTimeout(() => setRevealFeedback(null), 3000)
+    }
   }
 
   async function endTurn() {
@@ -199,15 +208,13 @@ export default function Play({ params }) {
             {teamLabel(game.winning_team)} Wins!
           </div>
         ) : (
-          <div style={{ flex: 1, display: "flex", alignItems: "center", gap: 12, flexWrap: "wrap" }}>
-            <div style={{ fontSize: 15, fontWeight: 900, color: turnColor, textTransform: "uppercase", letterSpacing: "0.08em", whiteSpace: "nowrap" }}>
+          <div style={{ flex: 1, display: "flex", alignItems: "center", gap: 8, flexWrap: "wrap" }}>
+            <div style={{ background: turnColor, color: "white", fontSize: 13, fontWeight: 900, padding: "4px 10px", textTransform: "uppercase", letterSpacing: "0.08em", whiteSpace: "nowrap" }}>
               {teamLabel(game.turn_team)}'s Turn
             </div>
-            <div style={{ fontSize: 12, fontWeight: 700, color: "rgba(0,0,0,0.45)", whiteSpace: "nowrap" }}>
-              Needed:
-              <span style={{ color: RED_COLOR, marginLeft: 6 }}>Red {redLeft}</span>
-              <span style={{ color: "rgba(0,0,0,0.25)", margin: "0 4px" }}>·</span>
-              <span style={{ color: BLUE_COLOR }}>Blue {blueLeft}</span>
+            <div style={{ display: "flex", gap: 5, alignItems: "center" }}>
+              <span style={{ background: RED_COLOR, color: "white", fontSize: 12, fontWeight: 800, padding: "3px 7px" }}>Red {redLeft}</span>
+              <span style={{ background: BLUE_COLOR, color: "white", fontSize: 12, fontWeight: 800, padding: "3px 7px" }}>Blue {blueLeft}</span>
             </div>
           </div>
         )}
@@ -246,11 +253,14 @@ export default function Play({ params }) {
               isMyTurn &&
               !isCluegiver &&
               !allGuessesUsed
-            const bg = cardBg(card, isCluegiver)
+            const bg = cardBg(card)
             const textColor = cardText(card, isCluegiver)
             const wordLen = card.word.length
             const fontSize = wordLen <= 4 ? 20 : wordLen <= 6 ? 17 : wordLen <= 8 ? 14 : 12
             const display = titleCase(card.word)
+            const selectionShadow = isSelected ? "inset 0 0 0 3px white" : ""
+            const cluegiverShadow = isCluegiver && !card.revealed ? `inset 0 0 0 5px ${cluegiverBorderColor(card)}` : ""
+            const boxShadow = [selectionShadow, cluegiverShadow].filter(Boolean).join(", ") || "none"
 
             return (
               <div
@@ -272,7 +282,7 @@ export default function Play({ params }) {
                   lineHeight: 1.15,
                   wordBreak: "break-word",
                   cursor: canTap ? "pointer" : "default",
-                  boxShadow: isSelected ? "0 0 0 3px white, 0 0 0 5px rgba(0,0,0,0.35)" : "none",
+                  boxShadow,
                   userSelect: "none",
                   WebkitUserSelect: "none",
                   transition: "box-shadow 0.1s",
@@ -281,18 +291,9 @@ export default function Play({ params }) {
                 }}
               >
                 {display}
-                {/* Revealed overlay for cluegiver */}
+                {/* Dim overlay for cluegiver's revealed cards to distinguish from unrevealed */}
                 {card.revealed && isCluegiver && (
-                  <div style={{
-                    position: "absolute", inset: 0,
-                    background: "rgba(0,0,0,0.28)",
-                    display: "flex", alignItems: "center", justifyContent: "center",
-                    padding: 4,
-                  }}>
-                    <div style={{ fontSize, fontWeight: 800, color: "rgba(255,255,255,0.9)", lineHeight: 1.15, textAlign: "center", wordBreak: "break-word" }}>
-                      {display}
-                    </div>
-                  </div>
+                  <div style={{ position: "absolute", inset: 0, background: "rgba(0,0,0,0.22)" }} />
                 )}
               </div>
             )
@@ -302,6 +303,22 @@ export default function Play({ params }) {
 
       {/* Action area */}
       <div style={{ padding: "0 16px 16px", flexShrink: 0 }}>
+
+        {/* Reveal feedback */}
+        {revealFeedback && (
+          <div style={{
+            marginBottom: 8, padding: "10px 14px", textAlign: "center",
+            background: revealFeedback === "correct" ? "#1A6B1A" : "#7A1A1A",
+            color: "white",
+          }}>
+            <div style={{ fontSize: 18, fontWeight: 900 }}>
+              {revealFeedback === "correct" ? "Correct!" : revealFeedback === "black" ? "Black card!" : "Incorrect!"}
+            </div>
+            {revealFeedback === "incorrect" && (
+              <div style={{ fontSize: 13, opacity: 0.8, marginTop: 2 }}>Play passes to the other team.</div>
+            )}
+          </div>
+        )}
 
         {/* ---- GAME OVER ---- */}
         {game.phase === "finished" && (
