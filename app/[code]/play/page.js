@@ -11,23 +11,30 @@ const BLUE_COLOR = "#1E50B5"
 const CARD_CREAM = "#F2EAD8"
 const TEXT = "#1A1008"
 
-// Muted tints for cluegiver's unrevealed view
-const RED_MUTED    = "#E8A0A0"
-const BLUE_MUTED   = "#9DB8E8"
-const BLACK_MUTED  = "#888888"
-const TAN_MUTED    = "#D8C8A8"
+// Full revealed colors
+const RED_FULL   = "#CC2222"
+const BLUE_FULL  = "#1E50B5"
+const BLACK_FULL = "#111111"
+const TAN_FULL   = "#C4924A"
 
-// Revealed colors (shown to everyone)
-const RED_FULL     = "#CC2222"
-const BLUE_FULL    = "#1E50B5"
-const BLACK_FULL   = "#111111"
-const TAN_FULL     = "#C4924A"
+// Darker versions for spy's revealed card background
+const RED_SPY_DARK  = "#7A1010"
+const BLUE_SPY_DARK = "#0E2560"
+const TAN_SPY_DARK  = "#9A6E38"
 
 function titleCase(word) {
   return word.split(" ").map(w => w.charAt(0) + w.slice(1).toLowerCase()).join(" ")
 }
 
+function spyRevealedBg(color) {
+  const lc = "rgba(255,255,255,0.2)"
+  const lw = 8
+  const base = color === "red" ? RED_SPY_DARK : color === "blue" ? BLUE_SPY_DARK : color === "black" ? "#0A0A0A" : TAN_SPY_DARK
+  return `linear-gradient(to bottom right, transparent calc(50% - ${lw}px), ${lc} calc(50% - ${lw}px), ${lc} calc(50% + ${lw}px), transparent calc(50% + ${lw}px)), linear-gradient(to bottom left, transparent calc(50% - ${lw}px), ${lc} calc(50% - ${lw}px), ${lc} calc(50% + ${lw}px), transparent calc(50% + ${lw}px)), ${base}`
+}
+
 function cardBg(card, isCluegiver) {
+  if (isCluegiver && card.revealed) return spyRevealedBg(card.color)
   if (isCluegiver || card.revealed) {
     if (card.color === "red")   return RED_FULL
     if (card.color === "blue")  return BLUE_FULL
@@ -263,24 +270,11 @@ export default function Play({ params }) {
             const wordLen = card.word.length
             const fontSize = wordLen <= 4 ? 20 : wordLen <= 6 ? 17 : wordLen <= 8 ? 14 : 12
             const display = titleCase(card.word)
-            const boxShadow = isSelected ? "inset 0 0 0 3px white" : "none"
+            const selectionColor = isCluegiver ? "rgba(255,255,255,0.65)" : TEXT
+            const outline = isSelected ? `3px dashed ${selectionColor}` : "none"
 
-            // What to render inside the card
-            let content = null
-            if (!card.revealed) {
-              content = display
-            } else if (isCluegiver) {
-              const symbol =
-                card.color === myTeam ? "+1" :
-                card.color === "tan"  ? "–"  :
-                card.color === "black"? "✕"  : "⊘"
-              content = (
-                <span style={{ fontSize: 28, fontWeight: 900, opacity: 0.22, userSelect: "none", lineHeight: 1 }}>
-                  {symbol}
-                </span>
-              )
-            }
-            // guesser + revealed: content stays null (solid color only)
+            // Unrevealed: show word. Revealed: nothing (color/X fills the card).
+            const content = card.revealed ? null : display
 
             return (
               <div
@@ -302,10 +296,10 @@ export default function Play({ params }) {
                   lineHeight: 1.15,
                   wordBreak: "break-word",
                   cursor: canTap ? "pointer" : "default",
-                  boxShadow,
+                  outline,
+                  outlineOffset: "-3px",
                   userSelect: "none",
                   WebkitUserSelect: "none",
-                  transition: "box-shadow 0.1s",
                 }}
               >
                 {content}

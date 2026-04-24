@@ -302,6 +302,18 @@ export default function Lobby({ params }) {
         </div>
       </div>
 
+      {/* Team strip */}
+      {me?.team && (
+        <div style={{
+          background: me.team === "red" ? RED_COLOR : BLUE_COLOR,
+          color: "white", fontSize: 12, fontWeight: 900,
+          textTransform: "uppercase", letterSpacing: "0.12em",
+          textAlign: "center", padding: "7px 0",
+        }}>
+          {me.team === "red" ? "Red Team" : "Blue Team"}
+        </div>
+      )}
+
       {/* Settings panel */}
       {showSettings && (
         <div style={{ padding: "20px 24px", background: "rgba(0,0,0,0.35)", borderBottom: "1px solid rgba(0,0,0,0.08)" }}>
@@ -353,62 +365,42 @@ export default function Lobby({ params }) {
 
       {/* Teams */}
       <div style={{ padding: "28px 24px 0" }}>
-        <div style={{ fontSize: 11, fontWeight: 800, textTransform: "uppercase", letterSpacing: "0.15em", color: "rgba(0,0,0,0.4)", marginBottom: 14 }}>
-          Teams
-        </div>
         <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 10 }}>
           {[
-            { team: "red", color: RED_COLOR, bg: RED_BG, label: "Red", players: redTeam, cluegiver: redCluegiver },
-            { team: "blue", color: BLUE_COLOR, bg: BLUE_BG, label: "Blue", players: blueTeam, cluegiver: blueCluegiver },
-          ].map(({ team, color, bg, label, players: teamPlayers, cluegiver: teamCluegiver }) => (
-            <div key={team} style={{ background: bg, padding: "12px 12px 12px", borderTop: `3px solid ${color}` }}>
-
-              {/* Colored team label */}
-              <div style={{ background: color, color: "white", fontSize: 11, fontWeight: 900, padding: "4px 8px", textTransform: "uppercase", letterSpacing: "0.1em", display: "inline-block", marginBottom: 8 }}>
-                {label}
+            { team: "red",  color: RED_COLOR,  bg: RED_BG,  label: "Red",  players: redTeam  },
+            { team: "blue", color: BLUE_COLOR, bg: BLUE_BG, label: "Blue", players: blueTeam },
+          ].map(({ team, color, bg, label, players: teamPlayers }) => (
+            <div key={team} style={{ background: bg, overflow: "hidden" }}>
+              <div style={{ background: color, color: "white", fontSize: 13, fontWeight: 900, padding: "8px 12px", textTransform: "uppercase", letterSpacing: "0.08em" }}>
+                {label} Team
               </div>
-
-              {/* Cluegiver indicator */}
-              <div style={{ fontSize: 11, fontWeight: 700, color: "rgba(0,0,0,0.45)", marginBottom: 8, textTransform: "uppercase", letterSpacing: "0.06em" }}>
-                Spy: <span style={{ fontStyle: teamCluegiver ? "normal" : "italic", fontWeight: teamCluegiver ? 800 : 600 }}>{teamCluegiver?.name ?? "none"}</span>
+              <div style={{ padding: "8px 12px 12px" }}>
+                {teamPlayers.length === 0 && (
+                  <div style={{ fontSize: 13, opacity: 0.35, fontStyle: "italic", padding: "4px 0" }}>No players</div>
+                )}
+                {teamPlayers.map(p => (
+                  <div
+                    key={p.id}
+                    onClick={() => me?.team === team && toggleCluegiver(p.id)}
+                    style={{
+                      display: "flex", alignItems: "center", gap: 7, padding: "7px 0",
+                      borderBottom: "1px solid rgba(0,0,0,0.08)",
+                      cursor: me?.team === team ? "pointer" : "default",
+                    }}
+                  >
+                    <div style={{ width: 7, height: 7, borderRadius: "50%", background: p.ready ? "#12BAAA" : "rgba(0,0,0,0.18)", flexShrink: 0 }} />
+                    <span style={{ fontSize: 15, fontWeight: 700, lineHeight: 1.2, flex: 1, minWidth: 0, overflow: "hidden" }}>
+                      {p.name}
+                      {p.id === myPlayerId && <span style={{ opacity: 0.4, fontSize: 11, fontWeight: 600 }}> you</span>}
+                      {p.is_cluegiver && (
+                        <span style={{ background: color, color: "white", fontSize: 9, fontWeight: 900, padding: "1px 5px", marginLeft: 5, letterSpacing: "0.06em", textTransform: "uppercase", verticalAlign: "middle" }}>
+                          Spy
+                        </span>
+                      )}
+                    </span>
+                  </div>
+                ))}
               </div>
-
-              {teamPlayers.length === 0 && (
-                <div style={{ fontSize: 13, opacity: 0.35, fontStyle: "italic" }}>No players</div>
-              )}
-
-              {teamPlayers.map(p => (
-                <div
-                  key={p.id}
-                  onClick={() => me?.team === team && toggleCluegiver(p.id)}
-                  style={{
-                    display: "flex", alignItems: "center", gap: 6, padding: "7px 0",
-                    borderBottom: "1px solid rgba(0,0,0,0.08)",
-                    cursor: me?.team === team ? "pointer" : "default",
-                  }}
-                >
-                  <span style={{ fontSize: 15, fontWeight: 700, lineHeight: 1.2, flex: 1, minWidth: 0, overflow: "hidden" }}>
-                    <span style={{ display: "inline" }}>{p.name}</span>
-                    {p.id === myPlayerId && <span style={{ opacity: 0.4, fontSize: 11, fontWeight: 600 }}> you</span>}
-                    {p.is_cluegiver && (
-                      <span style={{ background: color, color: "white", fontSize: 9, fontWeight: 900, padding: "1px 5px", marginLeft: 5, letterSpacing: "0.06em", textTransform: "uppercase", verticalAlign: "middle" }}>
-                        Spy
-                      </span>
-                    )}
-                  </span>
-                  <div style={{ width: 7, height: 7, borderRadius: "50%", background: p.ready ? "#12BAAA" : "rgba(0,0,0,0.18)", flexShrink: 0 }} />
-                </div>
-              ))}
-
-              {/* Join button — full width, prominent */}
-              {me && !me.team && (
-                <button
-                  onClick={() => joinTeam(team)}
-                  style={{ background: color, color: "white", fontSize: 16, fontWeight: 900, padding: "14px", width: "100%", marginTop: 12, display: "block", textTransform: "uppercase", letterSpacing: "0.06em" }}
-                >
-                  Join {label}
-                </button>
-              )}
             </div>
           ))}
         </div>
@@ -476,12 +468,6 @@ export default function Lobby({ params }) {
             </div>
             <div style={{ fontSize: 22, fontWeight: 900, marginBottom: 16 }}>
               {me.name}
-              {me.team && (
-                <span style={{ background: me.team === "red" ? RED_COLOR : BLUE_COLOR, color: "white", fontSize: 12, fontWeight: 900, padding: "3px 8px", marginLeft: 10, verticalAlign: "middle" }}>
-                  {me.team === "red" ? "Red" : "Blue"}
-                  {me.is_cluegiver && " · Spy"}
-                </span>
-              )}
             </div>
 
             {!me.team && (
@@ -498,6 +484,22 @@ export default function Lobby({ params }) {
                   style={{ background: "rgba(0,0,0,0.1)", color: TEXT, fontSize: 14, fontWeight: 800, padding: "12px 18px" }}
                 >
                   Switch Teams
+                </button>
+              )}
+
+              {me.team && (
+                <button
+                  disabled={me.ready}
+                  onClick={() => toggleCluegiver(me.id)}
+                  style={{
+                    background: me.is_cluegiver ? (me.team === "red" ? RED_COLOR : BLUE_COLOR) : "rgba(0,0,0,0.1)",
+                    color: me.is_cluegiver ? "white" : TEXT,
+                    fontSize: 14,
+                    fontWeight: 900,
+                    padding: "12px 18px",
+                  }}
+                >
+                  {me.is_cluegiver ? "Spy ✓" : "Play as the Team Spy"}
                 </button>
               )}
 
