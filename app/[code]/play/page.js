@@ -26,15 +26,20 @@ function titleCase(word) {
   return word.split(" ").map(w => w.charAt(0) + w.slice(1).toLowerCase()).join(" ")
 }
 
-function spyRevealedBg(color) {
-  const lc = "rgba(255,255,255,0.2)"
-  const lw = 8
-  const base = color === "red" ? RED_SPY_DARK : color === "blue" ? BLUE_SPY_DARK : color === "black" ? "#0A0A0A" : TAN_SPY_DARK
-  return `linear-gradient(to bottom right, transparent calc(50% - ${lw}px), ${lc} calc(50% - ${lw}px), ${lc} calc(50% + ${lw}px), transparent calc(50% + ${lw}px)), linear-gradient(to bottom left, transparent calc(50% - ${lw}px), ${lc} calc(50% - ${lw}px), ${lc} calc(50% + ${lw}px), transparent calc(50% + ${lw}px)), ${base}`
+function spyXColor(color) {
+  if (color === "red")   return "#AA2020"
+  if (color === "blue")  return "#1A3A88"
+  if (color === "black") return "#383838"
+  return "#C08848"
 }
 
 function cardBg(card, isCluegiver) {
-  if (isCluegiver && card.revealed) return spyRevealedBg(card.color)
+  if (isCluegiver && card.revealed) {
+    if (card.color === "red")   return RED_SPY_DARK
+    if (card.color === "blue")  return BLUE_SPY_DARK
+    if (card.color === "black") return "#0A0A0A"
+    return TAN_SPY_DARK
+  }
   if (isCluegiver || card.revealed) {
     if (card.color === "red")   return RED_FULL
     if (card.color === "blue")  return BLUE_FULL
@@ -273,9 +278,6 @@ export default function Play({ params }) {
             const selectionColor = isCluegiver ? "rgba(255,255,255,0.65)" : TEXT
             const outline = isSelected ? `3px dashed ${selectionColor}` : "none"
 
-            // Unrevealed: show word. Revealed: nothing (color/X fills the card).
-            const content = card.revealed ? null : display
-
             return (
               <div
                 key={card.id}
@@ -284,6 +286,7 @@ export default function Play({ params }) {
                   aspectRatio: "1",
                   minWidth: 0,
                   overflow: "hidden",
+                  position: "relative",
                   background: bg,
                   color: textColor,
                   display: "flex",
@@ -294,7 +297,9 @@ export default function Play({ params }) {
                   fontSize,
                   fontWeight: 800,
                   lineHeight: 1.15,
-                  wordBreak: "break-word",
+                  overflowWrap: "break-word",
+                  hyphens: "auto",
+                  WebkitHyphens: "auto",
                   cursor: canTap ? "pointer" : "default",
                   outline,
                   outlineOffset: "-3px",
@@ -302,7 +307,17 @@ export default function Play({ params }) {
                   WebkitUserSelect: "none",
                 }}
               >
-                {content}
+                {!card.revealed && display}
+                {isCluegiver && card.revealed && (
+                  <svg
+                    style={{ position: "absolute", inset: 0, width: "100%", height: "100%", pointerEvents: "none" }}
+                    viewBox="0 0 100 100"
+                    preserveAspectRatio="none"
+                  >
+                    <line x1="0" y1="0" x2="100" y2="100" stroke={spyXColor(card.color)} strokeWidth="26" strokeLinecap="square" />
+                    <line x1="100" y1="0" x2="0" y2="100" stroke={spyXColor(card.color)} strokeWidth="26" strokeLinecap="square" />
+                  </svg>
+                )}
               </div>
             )
           })}
