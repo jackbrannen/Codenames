@@ -521,7 +521,7 @@ export default function Lobby({ params }) {
             {me.team && !me.ready && !canReady && (
               <p style={{ marginTop: 12, fontSize: 13, fontWeight: 700, color: TEXT }}>
                 {!myTeamCluegiver
-                  ? "Your team needs a spy before you can ready up."
+                  ? "Your team needs a spy before you can mark yourself ready."
                   : myTeamSize < 2
                   ? "Your team needs at least 2 players."
                   : "The other team needs at least 2 players."}

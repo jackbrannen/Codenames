@@ -27,8 +27,8 @@ function titleCase(word) {
   return word.split(" ").map(w => w.charAt(0) + w.slice(1).toLowerCase()).join(" ")
 }
 
-function cardBg(card) {
-  if (card.revealed) {
+function cardBg(card, isCluegiver) {
+  if (isCluegiver || card.revealed) {
     if (card.color === "red")   return RED_FULL
     if (card.color === "blue")  return BLUE_FULL
     if (card.color === "black") return BLACK_FULL
@@ -37,22 +37,11 @@ function cardBg(card) {
   return CARD_CREAM
 }
 
-function cluegiverBorderColor(card) {
-  if (card.color === "red")   return RED_FULL
-  if (card.color === "blue")  return BLUE_FULL
-  if (card.color === "black") return "#333333"
-  return TAN_FULL
-}
-
 function cardText(card, isCluegiver) {
-  if (card.revealed) {
+  if (isCluegiver || card.revealed) {
     if (card.color === "black") return "rgba(255,255,255,0.85)"
     if (card.color === "tan") return TEXT
     return "white"
-  }
-  if (isCluegiver) {
-    if (card.color === "black") return "rgba(255,255,255,0.9)"
-    return TEXT
   }
   return TEXT
 }
@@ -204,6 +193,23 @@ export default function Play({ params }) {
   return (
     <div style={{ minHeight: "100dvh", background: BG, color: TEXT, display: "flex", flexDirection: "column" }}>
 
+      {/* Team bar */}
+      {myTeam && (
+        <div style={{
+          background: myTeam === "red" ? RED_COLOR : BLUE_COLOR,
+          color: "white",
+          fontSize: 11,
+          fontWeight: 900,
+          textTransform: "uppercase",
+          letterSpacing: "0.14em",
+          textAlign: "center",
+          padding: "5px 0",
+          flexShrink: 0,
+        }}>
+          {myTeam === "red" ? "Red Team" : "Blue Team"}
+        </div>
+      )}
+
       {/* Header bar */}
       <div style={{ background: "rgba(0,0,0,0.18)", padding: "12px 16px", display: "flex", alignItems: "center", justifyContent: "space-between", gap: 12, flexShrink: 0 }}>
         {game.phase === "finished" ? (
@@ -252,14 +258,29 @@ export default function Play({ params }) {
               isMyTurn &&
               !isCluegiver &&
               !allGuessesUsed
-            const bg = cardBg(card)
+            const bg = cardBg(card, isCluegiver)
             const textColor = cardText(card, isCluegiver)
             const wordLen = card.word.length
             const fontSize = wordLen <= 4 ? 20 : wordLen <= 6 ? 17 : wordLen <= 8 ? 14 : 12
             const display = titleCase(card.word)
-            const selectionShadow = isSelected ? "inset 0 0 0 3px white" : ""
-            const cluegiverShadow = isCluegiver && !card.revealed ? `inset 0 0 0 5px ${cluegiverBorderColor(card)}` : ""
-            const boxShadow = [selectionShadow, cluegiverShadow].filter(Boolean).join(", ") || "none"
+            const boxShadow = isSelected ? "inset 0 0 0 3px white" : "none"
+
+            // What to render inside the card
+            let content = null
+            if (!card.revealed) {
+              content = display
+            } else if (isCluegiver) {
+              const symbol =
+                card.color === myTeam ? "+1" :
+                card.color === "tan"  ? "–"  :
+                card.color === "black"? "✕"  : "⊘"
+              content = (
+                <span style={{ fontSize: 28, fontWeight: 900, opacity: 0.22, userSelect: "none", lineHeight: 1 }}>
+                  {symbol}
+                </span>
+              )
+            }
+            // guesser + revealed: content stays null (solid color only)
 
             return (
               <div
@@ -285,15 +306,9 @@ export default function Play({ params }) {
                   userSelect: "none",
                   WebkitUserSelect: "none",
                   transition: "box-shadow 0.1s",
-                  opacity: card.revealed && !isCluegiver ? 0.75 : 1,
-                  position: "relative",
                 }}
               >
-                {display}
-                {/* Dim overlay for cluegiver's revealed cards to distinguish from unrevealed */}
-                {card.revealed && isCluegiver && (
-                  <div style={{ position: "absolute", inset: 0, background: "rgba(0,0,0,0.22)" }} />
-                )}
+                {content}
               </div>
             )
           })}
