@@ -7,6 +7,19 @@ import { pick25Words } from "../../lib/words"
 
 const BG = "#C0B298"
 const TAN = "#C4924A"
+
+const WORDS_A_CN = [
+  "AMBER","CEDAR","CRIMSON","DAGGER","EMBER","FALCON","GLACIER","HARBOR","INDIGO","JASPER",
+  "KODIAK","LANTERN","MARBLE","NEBULA","ONYX","PHANTOM","QUARTZ","RAVEN","SILVER","TOPAZ",
+  "UMBRA","VORTEX","WALNUT","XENON","ZEPHYR",
+]
+
+function splitCodeCN(code) {
+  for (const w of WORDS_A_CN) {
+    if (code.startsWith(w)) return [w, code.slice(w.length)]
+  }
+  return [code, ""]
+}
 const RED_COLOR = "#CC2222"
 const BLUE_COLOR = "#1E50B5"
 const RED_BG = "rgba(204,34,34,0.18)"
@@ -277,7 +290,7 @@ export default function Lobby({ params }) {
             Codenames
           </div>
           <div style={{ fontSize: "clamp(18px, 6vw, 38px)", fontWeight: 900, letterSpacing: "-1px", lineHeight: 1, whiteSpace: "nowrap" }}>
-            {code}
+            {(() => { const [w1, w2] = splitCodeCN(code); return <><span style={{ color: TEXT }}>{w1}</span><span style={{ color: TAN }}>{w2}</span></> })()}
           </div>
         </div>
         <div style={{ display: "flex", gap: 8, flexShrink: 0, marginTop: 4 }}>
