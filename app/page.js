@@ -4,6 +4,7 @@ import { useState } from "react"
 import { useRouter } from "next/navigation"
 import { supabase } from "../lib/supabase"
 import { pick25Words } from "../lib/words"
+import { useSubmitNudge } from "../lib/useSubmitNudge"
 
 const BG = "#C0B298"
 const TAN = "#C4924A"
@@ -51,6 +52,7 @@ export default function Home() {
   const router = useRouter()
   const [isCreating, setIsCreating] = useState(false)
   const [joinCode, setJoinCode] = useState("")
+  const nudgeJoin = useSubmitNudge(joinCode, false)
   const [error, setError] = useState("")
 
   async function onCreateClick() {
@@ -185,6 +187,7 @@ export default function Home() {
               fontWeight: 900,
               padding: "18px 20px",
               flexShrink: 0,
+              animation: nudgeJoin ? "nudgePulse 1.5s ease-in-out infinite" : "none",
             }}
           >
             Join
