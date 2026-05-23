@@ -414,7 +414,7 @@ export default function Lobby({ params }) {
                       {p.id === myPlayerId && <span style={{ opacity: 0.4, fontSize: 11, fontWeight: 600 }}> you</span>}
                       {p.is_cluegiver && (
                         <span style={{ background: color, color: "white", fontSize: 9, fontWeight: 900, padding: "1px 5px", marginLeft: 5, letterSpacing: "0.06em", textTransform: "uppercase", verticalAlign: "middle" }}>
-                          Spy
+                          Cluegiver
                         </span>
                       )}
                     </span>
@@ -519,7 +519,7 @@ export default function Lobby({ params }) {
                     padding: "12px 18px",
                   }}
                 >
-                  {me.is_cluegiver ? "Spy ✓" : "Play as the Team Spy"}
+                  {me.is_cluegiver ? "Cluegiver ✓" : "Play as Cluegiver"}
                 </button>
               )}
 
@@ -543,7 +543,7 @@ export default function Lobby({ params }) {
             {me.team && !me.ready && !canReady && (
               <p style={{ marginTop: 12, fontSize: 13, fontWeight: 700, color: TEXT }}>
                 {!myTeamCluegiver
-                  ? "Your team needs a spy before you can mark yourself ready."
+                  ? "Your team needs a cluegiver before you can mark yourself ready."
                   : myTeamSize < 2
                   ? "Your team needs at least 2 players."
                   : "The other team needs at least 2 players."}

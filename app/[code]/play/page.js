@@ -80,6 +80,7 @@ export default function Play({ params }) {
   const [submittingGuess, setSubmittingGuess] = useState(false)
   const [revealFeedback, setRevealFeedback] = useState(null)
   const [showClueRules, setShowClueRules] = useState(false)
+  const [showColors, setShowColors] = useState(true)
   const loadEpochRef = useRef(0)
 
   async function loadState() {
@@ -270,8 +271,8 @@ export default function Play({ params }) {
               isMyTurn &&
               !isCluegiver &&
               !allGuessesUsed
-            const bg = cardBg(card, isCluegiver)
-            const textColor = cardText(card, isCluegiver)
+            const bg = cardBg(card, isCluegiver && showColors)
+            const textColor = cardText(card, isCluegiver && showColors)
             const wordLen = card.word.length
             const fontSize = wordLen <= 4 ? 20 : wordLen <= 6 ? 17 : wordLen <= 8 ? 14 : 12
             const display = titleCase(card.word)
@@ -308,7 +309,7 @@ export default function Play({ params }) {
                 }}
               >
                 {!card.revealed && display}
-                {isCluegiver && card.revealed && (
+                {isCluegiver && showColors && card.revealed && (
                   <svg
                     style={{ position: "absolute", inset: 0, width: "100%", height: "100%", pointerEvents: "none" }}
                     viewBox="0 0 100 100"
@@ -323,6 +324,26 @@ export default function Play({ params }) {
           })}
         </div>
       </div>
+
+      {/* Color toggle for cluegiver */}
+      {isCluegiver && (
+        <div style={{ padding: "4px 16px 0", textAlign: "right" }}>
+          <button
+            onClick={() => setShowColors(v => !v)}
+            style={{
+              background: "transparent",
+              color: showColors ? "rgba(0,0,0,0.45)" : "rgba(0,0,0,0.25)",
+              fontSize: 12,
+              fontWeight: 700,
+              padding: "4px 0",
+              textDecoration: "underline",
+              textUnderlineOffset: 3,
+            }}
+          >
+            {showColors ? "Hide colors" : "Show colors"}
+          </button>
+        </div>
+      )}
 
       {/* Action area */}
       <div style={{ padding: "0 16px 16px", flexShrink: 0 }}>
