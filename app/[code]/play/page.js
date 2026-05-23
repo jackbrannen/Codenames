@@ -3,6 +3,7 @@
 import { useEffect, useMemo, useRef, useState } from "react"
 import { useRouter } from "next/navigation"
 import { supabase } from "../../../lib/supabase"
+import PokeSystem, { FOOTER_H } from "../../../components/PokeSystem"
 
 const BG = "#C0B298"
 const TAN = "#C4924A"
@@ -66,6 +67,9 @@ function teamLabel(team) {
   return team === "red" ? "Red" : "Blue"
 }
 
+
+const POKE_COLORS = { dark: "#1A1008", mid: "#2E1E0F", wl: "#4A3015", yellow: "#FBDF54", notifBg: "#100C05" }
+const BOTTOM_PAD = `calc(${FOOTER_H + 8}px + env(safe-area-inset-bottom))`
 export default function Play({ params }) {
   const router = useRouter()
   const code = useMemo(() => params.code.toUpperCase(), [params.code])
@@ -125,6 +129,20 @@ export default function Play({ params }) {
   }, [game?.phase])
 
   const me = players.find(p => p.id === myPlayerId)
+
+  // ── PokeSystem (always mounted for notifications) ──────────────────────────
+  const pokeSystemNode = me ? (
+    <PokeSystem
+      colors={POKE_COLORS}
+      roomCode={code}
+      currentPlayer={me.name}
+      allPlayers={players.map(p => p.name)}
+      playerDetails={players.map(p => ({ name: p.name, firstName: p.first_name, lastName: p.last_name }))}
+      gamePhase={game?.phase}
+      onResetToLobby={async () => { await supabase.rpc("reset_codenames_game", { p_code: code }) }}
+    />
+  ) : null
+
   const isCluegiver = !!me?.is_cluegiver
   const myTeam = me?.team
   const isMyTurn = !!myTeam && game?.turn_team === myTeam
@@ -196,9 +214,12 @@ export default function Play({ params }) {
 
   if (!game) {
     return (
+      <>
       <div style={{ minHeight: "100dvh", background: BG, display: "flex", alignItems: "center", justifyContent: "center" }}>
         <p style={{ color: "rgba(255,255,255,0.4)", fontSize: 18, fontWeight: 700 }}>Loading…</p>
       </div>
+        {pokeSystemNode}
+      </>
     )
   }
 
@@ -206,6 +227,7 @@ export default function Play({ params }) {
   const turnColor = teamColor(game.turn_team)
 
   return (
+    <>
     <div style={{ minHeight: "100dvh", background: BG, color: TEXT, display: "flex", flexDirection: "column" }}>
 
       {/* Team bar */}
@@ -569,5 +591,7 @@ export default function Play({ params }) {
         </div>
       )}
     </div>
+      {pokeSystemNode}
+    </>
   )
 }
