@@ -137,7 +137,7 @@ export default function Play({ params }) {
       roomCode={code}
       currentPlayer={me.name}
       allPlayers={players.map(p => p.name)}
-      playerDetails={players.map(p => ({ name: p.name, firstName: p.first_name, lastName: p.last_name }))}
+      playerDetails={players.map(p => ({ name: p.name, firstName: p.first_name, lastName: p.last_name, team: p.team, teamColor: p.team === "red" ? RED_COLOR : p.team === "blue" ? BLUE_COLOR : undefined, teamLabel: p.team === "red" ? "Red" : p.team === "blue" ? "Blue" : undefined }))}
       gamePhase={game?.phase}
       onResetToLobby={async () => { await supabase.rpc("reset_codenames_game", { p_code: code }) }}
     />
