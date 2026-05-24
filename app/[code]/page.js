@@ -26,6 +26,14 @@ const RED_BG = "rgba(204,34,34,0.18)"
 const BLUE_BG = "rgba(30,80,181,0.18)"
 const YELLOW = "#FBDF54"
 
+const INSTRUCTIONS = `Players: 4+ · Teams: 2 · Time: 25+ min
+
+Two teams — Red and Blue. Each team has a Cluegiver who can see which words on the board belong to their team, the other team, neutral bystanders, or the instant-lose Assassin.
+
+Cluegivers take turns giving a one-word clue plus a number ("Vehicles, 3"). Their team guesses which words on the board match that clue, one at a time. A correct guess continues the turn (up to the number given plus one). A wrong guess (or the Assassin) ends the turn immediately — and touching the Assassin loses the game on the spot.
+
+The first team to correctly identify all their words wins.`
+
 function loadProfile() {
   try {
     const local = JSON.parse(localStorage.getItem("jackgames:profile") || "null")
@@ -91,6 +99,7 @@ export default function Lobby({ params }) {
   const [name, setName] = useState("")
   const [joinError, setJoinError] = useState("")
   const [joining, setJoining] = useState(false)
+  const [showInstructions, setShowInstructions] = useState(false)
   const [starting, setStarting] = useState(false)
   const [confirmingStart, setConfirmingStart] = useState(false)
   const [showSettings, setShowSettings] = useState(false)
@@ -300,6 +309,12 @@ export default function Lobby({ params }) {
           </div>
         </div>
         <div style={{ display: "flex", gap: 8, flexShrink: 0, marginTop: 4 }}>
+          <button
+            onClick={() => setShowInstructions(true)}
+            style={{ flexShrink: 0, background: "rgba(0,0,0,0.1)", color: TEXT, fontSize: 15, fontWeight: 800, padding: "10px 14px" }}
+          >
+            ?
+          </button>
           {!!me && (
             <button
               onClick={() => { setDraftFirstTurn(firstTurnTeam); setShowSettings(s => !s) }}
@@ -552,6 +567,26 @@ export default function Lobby({ params }) {
           </>
         )}
       </div>
+
+      {showInstructions && (
+        <div
+          onClick={() => setShowInstructions(false)}
+          style={{ position: "fixed", inset: 0, background: "rgba(0,0,0,0.75)", zIndex: 200, display: "flex", alignItems: "flex-start", justifyContent: "center", padding: 24, overflowY: "auto" }}
+        >
+          <div
+            onClick={e => e.stopPropagation()}
+            style={{ background: "#1A1A2E", width: "100%", maxWidth: 480, padding: "28px 24px", marginTop: 24 }}
+          >
+            <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", marginBottom: 20 }}>
+              <div style={{ fontSize: 20, fontWeight: 900, color: "white" }}>How to Play</div>
+              <button onClick={() => setShowInstructions(false)} style={{ background: "rgba(255,255,255,0.15)", color: "white", fontSize: 18, fontWeight: 800, padding: "6px 12px" }}>✕</button>
+            </div>
+            <div style={{ fontSize: 15, color: "rgba(255,255,255,0.85)", lineHeight: 1.7, fontWeight: 400, whiteSpace: "pre-wrap" }}>
+              {INSTRUCTIONS}
+            </div>
+          </div>
+        </div>
+      )}
 
       {confirmingStart && (
         <div
