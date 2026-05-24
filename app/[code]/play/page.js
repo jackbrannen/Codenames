@@ -70,6 +70,28 @@ function teamLabel(team) {
 
 const POKE_COLORS = { dark: "#1A1008", mid: "#2E1E0F", wl: "#4A3015", yellow: "#FBDF54", notifBg: "#100C05" }
 const BOTTOM_PAD = `calc(${FOOTER_H + 8}px + env(safe-area-inset-bottom))`
+
+const ALL_GAMES = [
+  { name: "Fishbowl",         sub: "fishbowl",           color: "#3378FF" },
+  { name: "Game of What",     sub: "gameofwhat",          color: "#6B1A44" },
+  { name: "Avalon",           sub: "avalon",              color: "#0F1923" },
+  { name: "First to Worst",   sub: "firsttoworst",        color: "#004F45" },
+  { name: "Drawful",          sub: "drawful",             color: "#307977" },
+  { name: "So Clover",        sub: "soclover",            color: "#6B8C2A" },
+  { name: "Telestrations",    sub: "telestrations",       color: "#3D1060" },
+  { name: "Copycats",         sub: "copycats",            color: "#4A1A80" },
+  { name: "Codenames",        sub: "codenames",           color: "#2C2C4A" },
+  { name: "Reverse Charades", sub: "reversecharades",     color: "#1A3A1A" },
+  { name: "Exquisite Corpse", sub: "exquisite-corpse",    color: "#1A3A5C" },
+  { name: "Mr. White",        sub: "mrwhite",             color: "#1A1A2E" },
+]
+const CODE_WORDS_A = ["MAPLE","RIVER","OCEAN","SILVER","EMBER","CLOUD","STORM","FROST","AMBER","CEDAR"]
+const CODE_WORDS_B = ["RIDGE","PEAK","VALE","GROVE","CREST","BROOK","SHORE","WIND","FIELD","STONE"]
+function makeNextCode() {
+  return CODE_WORDS_A[Math.floor(Math.random() * CODE_WORDS_A.length)] +
+         CODE_WORDS_B[Math.floor(Math.random() * CODE_WORDS_B.length)]
+}
+
 export default function Play({ params }) {
   const router = useRouter()
   const code = useMemo(() => params.code.toUpperCase(), [params.code])
@@ -92,7 +114,7 @@ export default function Play({ params }) {
 
     const [{ data: gameData }, { data: playerData }, { data: cardData }] = await Promise.all([
       supabase.from("codenames_games")
-        .select("code,phase,turn_team,turn_phase,current_clue_word,current_clue_number,guesses_used,first_turn_team,winning_team,turn_selected_card_id")
+        .select("code,phase,turn_team,turn_phase,current_clue_word,current_clue_number,guesses_used,first_turn_team,winning_team,turn_selected_card_id,next_game,next_game_code")
         .eq("code", code)
         .single(),
       supabase.from("codenames_players")
@@ -127,6 +149,11 @@ export default function Play({ params }) {
   useEffect(() => {
     if (game?.phase === "lobby") router.replace(`/${code}`)
   }, [game?.phase])
+
+  useEffect(() => {
+    if (!game?.next_game || !game?.next_game_code) return
+    window.location.href = `https://${game.next_game}.jackbrannen.com/${game.next_game_code}`
+  }, [game?.next_game, game?.next_game_code])
 
   const me = players.find(p => p.id === myPlayerId)
 
@@ -210,6 +237,11 @@ export default function Play({ params }) {
   async function playAgain() {
     await supabase.rpc("reset_codenames_game", { p_code: code })
     router.replace(`/${code}`)
+  }
+
+  async function pickNextGame(gameSub) {
+    const nextCode = makeNextCode()
+    await supabase.from("codenames_games").update({ next_game: gameSub, next_game_code: nextCode }).eq("code", code)
   }
 
   if (!game) {
@@ -396,10 +428,19 @@ export default function Play({ params }) {
             </div>
             <button
               onClick={playAgain}
-              style={{ background: TEXT, color: "white", fontSize: 20, fontWeight: 900, padding: "18px", width: "100%", display: "block" }}
+              style={{ background: TEXT, color: "white", fontSize: 20, fontWeight: 900, padding: "18px", width: "100%", display: "block", marginBottom: 16 }}
             >
               Play Again
             </button>
+            <div style={{ fontSize: 17, fontWeight: 800, color: "rgba(0,0,0,0.65)", marginBottom: 10 }}>Play Another Game</div>
+            <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 8 }}>
+              {ALL_GAMES.map(g => (
+                <button key={g.sub} onClick={() => pickNextGame(g.sub)}
+                  style={{ background: g.color, color: "white", fontSize: 15, fontWeight: 800, padding: "18px 12px", textAlign: "center", lineHeight: 1.3 }}>
+                  {g.name}
+                </button>
+              ))}
+            </div>
           </div>
         )}
 
