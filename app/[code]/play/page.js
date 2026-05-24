@@ -71,26 +71,20 @@ function teamLabel(team) {
 const POKE_COLORS = { dark: "#1A1008", mid: "#2E1E0F", wl: "#4A3015", yellow: "#FBDF54", notifBg: "#100C05" }
 const BOTTOM_PAD = `calc(${FOOTER_H + 8}px + env(safe-area-inset-bottom))`
 
-const ALL_GAMES = [
-  { name: "Fishbowl",         sub: "fishbowl",           color: "#3378FF" },
-  { name: "Game of What",     sub: "gameofwhat",          color: "#6B1A44" },
-  { name: "Avalon",           sub: "avalon",              color: "#0F1923" },
-  { name: "First to Worst",   sub: "firsttoworst",        color: "#004F45" },
-  { name: "Drawful",          sub: "drawful",             color: "#307977" },
-  { name: "So Clover",        sub: "soclover",            color: "#6B8C2A" },
-  { name: "Telestrations",    sub: "telestrations",       color: "#3D1060" },
-  { name: "Copycats",         sub: "copycats",            color: "#4A1A80" },
-  { name: "Codenames",        sub: "codenames",           color: "#2C2C4A" },
-  { name: "Reverse Charades", sub: "reversecharades",     color: "#1A3A1A" },
-  { name: "Exquisite Corpse", sub: "exquisite-corpse",    color: "#1A3A5C" },
-  { name: "Mr. White",        sub: "mrwhite",             color: "#1A1A2E" },
-]
-const CODE_WORDS_A = ["MAPLE","RIVER","OCEAN","SILVER","EMBER","CLOUD","STORM","FROST","AMBER","CEDAR"]
-const CODE_WORDS_B = ["RIDGE","PEAK","VALE","GROVE","CREST","BROOK","SHORE","WIND","FIELD","STONE"]
-function makeNextCode() {
-  return CODE_WORDS_A[Math.floor(Math.random() * CODE_WORDS_A.length)] +
-         CODE_WORDS_B[Math.floor(Math.random() * CODE_WORDS_B.length)]
-}
+const NEXT_GAMES = [
+  { name: "Fishbowl",         sub: "fishbowl",         players: "4+ players",   description: "Teams guess clues from a bowl",                                                      bg: "#3378FF", color: "white"    },
+  { name: "The Game of What", sub: "gameofwhat",        players: "4+ players",   description: "Like Quiplash but with DIY Questions.",                                              bg: "#A02866", color: "white"    },
+  { name: "Avalon",           sub: "avalon",            players: "5–10 players", description: "Hidden roles — find the traitors before they sabotage the quests.",                  bg: "#C9A84C", color: "#2A1800"  },
+  { name: "First to Worst",   sub: "firsttoworst",      players: "4+ players",   description: "Submit 5 things, rank them secretly, then the group guesses your order.",            bg: "#004F45", color: "white"    },
+  { name: "Codenames",        sub: "codenames",         players: "4+ players",   description: "Two teams race to find their secret agents using one-word clues.",                   bg: "#C0B298", color: "#2C1A0A"  },
+  { name: "Telestrations",    sub: "telestrations",     players: "5+ players",   description: "Write a sentence, draw it, guess the drawing — watch it fall apart.",                bg: "#2B0F6B", color: "white"    },
+  { name: "Exquisite Corpse", sub: "exquisitecorpse",   players: "4+ players",   description: "Cooperative blind drawing game.",                                                    bg: "#1A3A5C", color: "white"    },
+  { name: "Drawful",          sub: "drawful",           players: "4+ players",   description: "Draw weird. Guess weirder.",                                                         bg: "#307977", color: "white"    },
+  { name: "So Clover",        sub: "soclover",          players: "2+ players",   description: "Arrange keyword cards, write clues, guess each other's boards.",                     bg: "#6B8C2A", color: "white"    },
+  { name: "Copycats",         sub: "copycats",          players: "3+ players",   description: "Write a question for another player. Everyone else tries to fake their answer.",     bg: "#5C2D8C", color: "white"    },
+  { name: "Mr. White",        sub: "mrwhite",           players: "4+ players",   description: "One player has a slightly different word. Find the impostor.",                       bg: "#2C2540", color: "white"    },
+  { name: "Reverse Charades", sub: "reversecharades",   players: "4+ players",   description: "Everyone acts it out — one person guesses.",                                        bg: "#974344", color: "white"    },
+].filter(g => g.sub !== "codenames")
 
 export default function Play({ params }) {
   const router = useRouter()
@@ -107,6 +101,7 @@ export default function Play({ params }) {
   const [revealFeedback, setRevealFeedback] = useState(null)
   const [showClueRules, setShowClueRules] = useState(false)
   const [showColors, setShowColors] = useState(true)
+  const [showGameModal, setShowGameModal] = useState(false)
   const loadEpochRef = useRef(0)
 
   async function loadState() {
@@ -114,7 +109,7 @@ export default function Play({ params }) {
 
     const [{ data: gameData }, { data: playerData }, { data: cardData }] = await Promise.all([
       supabase.from("codenames_games")
-        .select("code,phase,turn_team,turn_phase,current_clue_word,current_clue_number,guesses_used,first_turn_team,winning_team,turn_selected_card_id,next_game,next_game_code")
+        .select("code,phase,turn_team,turn_phase,current_clue_word,current_clue_number,guesses_used,first_turn_team,winning_team,turn_selected_card_id,next_game")
         .eq("code", code)
         .single(),
       supabase.from("codenames_players")
@@ -151,9 +146,9 @@ export default function Play({ params }) {
   }, [game?.phase])
 
   useEffect(() => {
-    if (!game?.next_game || !game?.next_game_code) return
-    window.location.href = `https://${game.next_game}.jackbrannen.com/${game.next_game_code}`
-  }, [game?.next_game, game?.next_game_code])
+    if (!game?.next_game) return
+    window.location.href = `https://${game.next_game}.jackbrannen.com/`
+  }, [game?.next_game])
 
   const me = players.find(p => p.id === myPlayerId)
 
@@ -240,8 +235,7 @@ export default function Play({ params }) {
   }
 
   async function pickNextGame(gameSub) {
-    const nextCode = makeNextCode()
-    await supabase.from("codenames_games").update({ next_game: gameSub, next_game_code: nextCode }).eq("code", code)
+    await supabase.from("codenames_games").update({ next_game: gameSub }).eq("code", code)
   }
 
   if (!game) {
@@ -432,15 +426,10 @@ export default function Play({ params }) {
             >
               Play Again
             </button>
-            <div style={{ fontSize: 17, fontWeight: 800, color: "rgba(0,0,0,0.65)", marginBottom: 10 }}>Play Another Game</div>
-            <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 8 }}>
-              {ALL_GAMES.map(g => (
-                <button key={g.sub} onClick={() => pickNextGame(g.sub)}
-                  style={{ background: g.color, color: "white", fontSize: 15, fontWeight: 800, padding: "18px 12px", textAlign: "center", lineHeight: 1.3 }}>
-                  {g.name}
-                </button>
-              ))}
-            </div>
+            <button onClick={() => setShowGameModal(true)}
+              style={{ background: TEXT, color: "white", fontSize: 16, fontWeight: 900, padding: "14px 24px", width: "100%" }}>
+              Play Another Game
+            </button>
           </div>
         )}
 
@@ -633,6 +622,28 @@ export default function Play({ params }) {
       )}
     </div>
       {pokeSystemNode}
+      {showGameModal && (
+        <div onClick={() => setShowGameModal(false)} style={{ position: "fixed", inset: 0, background: "rgba(0,0,0,0.8)", zIndex: 300, overflowY: "auto", WebkitOverflowScrolling: "touch" }}>
+          <div onClick={e => e.stopPropagation()} style={{ maxWidth: 480, margin: "0 auto", padding: "24px 16px 64px" }}>
+            <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", marginBottom: 16 }}>
+              <div style={{ fontSize: 20, fontWeight: 900, color: "white" }}>Play Another Game</div>
+              <button onClick={() => setShowGameModal(false)} style={{ background: "rgba(255,255,255,0.15)", color: "white", fontSize: 18, fontWeight: 800, padding: "6px 12px" }}>✕</button>
+            </div>
+            <div style={{ display: "flex", flexDirection: "column", gap: 8 }}>
+              {NEXT_GAMES.map(g => (
+                <button key={g.sub} onClick={() => { setShowGameModal(false); pickNextGame(g.sub) }}
+                  style={{ display: "block", width: "100%", background: g.bg, color: g.color, padding: "20px 20px", textAlign: "left" }}>
+                  <div style={{ fontSize: 20, fontWeight: 900, lineHeight: 1.2, marginBottom: 5 }}>{g.name}</div>
+                  <div style={{ marginBottom: 6 }}>
+                    <span style={{ fontSize: 11, fontWeight: 800, background: "rgba(0,0,0,0.2)", color: g.color, padding: "3px 8px", opacity: 0.85 }}>{g.players}</span>
+                  </div>
+                  <div style={{ fontSize: 13, fontWeight: 600, opacity: 0.65 }}>{g.description}</div>
+                </button>
+              ))}
+            </div>
+          </div>
+        </div>
+      )}
     </>
   )
 }
