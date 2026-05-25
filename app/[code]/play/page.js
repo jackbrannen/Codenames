@@ -258,7 +258,7 @@ export default function Play({ params }) {
 
   return (
     <>
-    <div style={{ minHeight: "100dvh", background: BG, color: TEXT, display: "flex", flexDirection: "column" }}>
+    <div style={{ height: "100dvh", background: BG, color: TEXT, display: "flex", flexDirection: "column", overflow: "hidden" }}>
 
       {/* Team bar */}
       {myTeam && (
