@@ -304,30 +304,32 @@ export default function Lobby({ params }) {
             {(() => { const [w1, w2] = splitCodeCN(code); return <><span style={{ color: TEXT }}>{w1}</span><span style={{ color: TAN }}>{w2}</span></> })()}
           </div>
         </div>
-        <div style={{ display: "flex", gap: 8, flexShrink: 0, marginTop: 4 }}>
+        <div style={{ display: "flex", flexDirection: "column", gap: 8, flexShrink: 0, marginTop: 4, alignItems: "stretch" }}>
+          <div style={{ display: "flex", gap: 8 }}>
+            {!!me && (
+              <button
+                onClick={() => { setDraftFirstTurn(firstTurnTeam); setShowSettings(s => !s) }}
+                style={{ background: "rgba(0,0,0,0.1)", color: TEXT, padding: "8px 12px", display: "flex", alignItems: "center", justifyContent: "center" }}
+              >
+                <CogIcon />
+              </button>
+            )}
+            <button
+              onClick={async () => {
+                const url = window.location.href
+                if (navigator.share) await navigator.share({ title: `Join Codenames — ${code}`, url })
+                else { await navigator.clipboard.writeText(url); alert("Link copied!") }
+              }}
+              style={{ background: "rgba(0,0,0,0.1)", color: TEXT, fontSize: 13, fontWeight: 800, padding: "10px 16px" }}
+            >
+              Invite
+            </button>
+          </div>
           <button
             onClick={() => setShowInstructions(true)}
-            style={{ flexShrink: 0, background: "rgba(0,0,0,0.1)", color: TEXT, fontSize: 15, fontWeight: 800, padding: "10px 14px" }}
+            style={{ background: "rgba(0,0,0,0.1)", color: TEXT, fontSize: 13, fontWeight: 800, padding: "10px 14px" }}
           >
-            ?
-          </button>
-          {!!me && (
-            <button
-              onClick={() => { setDraftFirstTurn(firstTurnTeam); setShowSettings(s => !s) }}
-              style={{ background: "rgba(0,0,0,0.1)", color: TEXT, padding: "8px 12px", display: "flex", alignItems: "center", justifyContent: "center" }}
-            >
-              <CogIcon />
-            </button>
-          )}
-          <button
-            onClick={async () => {
-              const url = window.location.href
-              if (navigator.share) await navigator.share({ title: `Join Codenames — ${code}`, url })
-              else { await navigator.clipboard.writeText(url); alert("Link copied!") }
-            }}
-            style={{ background: "rgba(0,0,0,0.1)", color: TEXT, fontSize: 13, fontWeight: 800, padding: "10px 16px" }}
-          >
-            Invite
+            How to Play
           </button>
         </div>
       </div>
