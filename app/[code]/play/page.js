@@ -102,6 +102,7 @@ export default function Play({ params }) {
   const [showClueRules, setShowClueRules] = useState(false)
   const [showColors, setShowColors] = useState(true)
   const [showGameModal, setShowGameModal] = useState(false)
+  const [instructions, setInstructions] = useState("")
   const loadEpochRef = useRef(0)
 
   async function loadState() {
@@ -134,9 +135,11 @@ export default function Play({ params }) {
   }, [code])
 
   useEffect(() => {
+    supabase.from("game_instructions").select("body").eq("game_key", "codenames").single()
+      .then(({ data }) => { if (data?.body) setInstructions(data.body) })
     loadState()
-    let poll = setInterval(loadState, 5000)
-    function handleVisibility() { clearInterval(poll); if (!document.hidden) { loadState(); poll = setInterval(loadState, 5000) } }
+    let poll = setInterval(loadState, 1500)
+    function handleVisibility() { clearInterval(poll); if (!document.hidden) { loadState(); poll = setInterval(loadState, 1500) } }
     document.addEventListener("visibilitychange", handleVisibility)
     return () => { clearInterval(poll); document.removeEventListener("visibilitychange", handleVisibility) }
   }, [code])
@@ -161,6 +164,7 @@ export default function Play({ params }) {
       allPlayers={players.map(p => p.name)}
       playerDetails={players.map(p => ({ name: p.name, firstName: p.first_name, lastName: p.last_name, team: p.team, teamColor: p.team === "red" ? RED_COLOR : p.team === "blue" ? BLUE_COLOR : undefined, teamLabel: p.team === "red" ? "Red" : p.team === "blue" ? "Blue" : undefined }))}
       gamePhase={game?.phase}
+      rules={instructions ? [["How to Play", instructions]] : null}
       onResetToLobby={async () => { await supabase.rpc("reset_codenames_game", { p_code: code }) }}
     />
   ) : null
@@ -311,7 +315,7 @@ export default function Play({ params }) {
       )}
 
       {/* Game board */}
-      <div style={{ padding: "10px", flex: 1, width: "100%", boxSizing: "border-box", overflow: "hidden" }}>
+      <div style={{ padding: "10px", paddingBottom: BOTTOM_PAD, flex: 1, width: "100%", boxSizing: "border-box", overflowY: "auto" }}>
         <div style={{ display: "grid", gridTemplateColumns: "repeat(5, 1fr)", gap: 5, width: "100%" }}>
           {cards.map(card => {
             const isSelected = card.id === game.turn_selected_card_id
