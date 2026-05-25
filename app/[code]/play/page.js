@@ -315,7 +315,7 @@ export default function Play({ params }) {
       )}
 
       {/* Game board */}
-      <div style={{ padding: "10px", paddingBottom: BOTTOM_PAD, flex: 1, width: "100%", boxSizing: "border-box", overflowY: "auto" }}>
+      <div style={{ padding: "10px", flex: 1, width: "100%", boxSizing: "border-box", overflowY: "auto" }}>
         <div style={{ display: "grid", gridTemplateColumns: "repeat(5, 1fr)", gap: 5, width: "100%" }}>
           {cards.map(card => {
             const isSelected = card.id === game.turn_selected_card_id
@@ -400,7 +400,7 @@ export default function Play({ params }) {
       )}
 
       {/* Action area */}
-      <div style={{ padding: "0 16px 16px", flexShrink: 0 }}>
+      <div style={{ padding: "0 16px", paddingBottom: BOTTOM_PAD, flexShrink: 0 }}>
 
         {/* Reveal feedback */}
         {revealFeedback && (
